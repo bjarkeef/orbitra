@@ -4,16 +4,7 @@ Build with NuxtJS, TailwindCSS and using the [TMDB api](https://themoviedb.org).
 
 [See it in action](https://flamey-tv.vercel.app/)
 
-
-TODO:
-
-Figuring out some new stuff!
-
-
-
 If you have any suggestions or feedback, feel free to reach out to me. And if you like what you see, please consider starring the repo! 🌟
-
-
 
 
 ## Build Setup
