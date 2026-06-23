@@ -66,7 +66,7 @@ const { data, pending: loading, error: asyncError } = await useAsyncData(
     const [tv, credits] = await Promise.all([getTv(tid), getTvCredits(tid).catch(() => ({ cast: [], crew: [] }))])
     return { tv, cast: credits.cast || [], crew: credits.crew || [], backdropImgPath: backdropStyle(tv.backdrop_path) }
   },
-  { watch: [id] },
+  { watch: [id], lazy: import.meta.client },
 )
 
 const tv = computed(() => data.value?.tv ?? null)

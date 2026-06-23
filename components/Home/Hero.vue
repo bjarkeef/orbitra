@@ -29,41 +29,55 @@
         <button type="button" class="mt-3 text-sm text-indigo-300 underline" @click="refresh()">Try again</button>
       </div>
 
-      <Transition v-else name="hero-fade" mode="out-in">
-        <div v-if="current" :key="'copy-' + current.id" class="max-w-2xl">
-          <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight drop-shadow">
-            {{ titleOf(current) }}
-          </h1>
-          <p v-if="current.overview" class="mt-4 text-sm sm:text-base text-slate-300/90 line-clamp-3 max-w-xl leading-relaxed">
-            {{ current.overview }}
-          </p>
-          <div class="mt-6 flex flex-wrap items-center gap-3">
-            <NuxtLink
-              :to="linkOf(current)"
-              class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-semibold transition-colors shadow-lg shadow-indigo-950/40"
-            >
-              View details
-            </NuxtLink>
-            <span v-if="scoreOf(current)" class="text-sm text-slate-400">
-              ★ {{ scoreOf(current) }}
-              <span v-if="yearOf(current)" class="text-slate-500"> · {{ yearOf(current) }}</span>
-            </span>
-          </div>
-
-          <!-- Dots -->
-          <div class="mt-8 flex gap-2" aria-label="Featured slides">
-            <button
-              v-for="(item, i) in slides"
-              :key="item.id"
-              type="button"
-              class="h-1.5 rounded-full transition-all"
-              :class="i === index ? 'w-8 bg-indigo-400' : 'w-3 bg-slate-600 hover:bg-slate-500'"
-              :aria-label="'Show ' + titleOf(item)"
-              @click="go(i)"
-            />
-          </div>
+      <template v-else>
+        <div class="max-w-2xl min-h-[11rem] sm:min-h-[13rem]">
+          <!-- Only title / copy / CTA rotate — pagination stays mounted -->
+          <Transition name="hero-fade" mode="out-in">
+            <div v-if="current" :key="'copy-' + current.id">
+              <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight drop-shadow">
+                {{ titleOf(current) }}
+              </h1>
+              <p
+                v-if="current.overview"
+                class="mt-4 text-sm sm:text-base text-slate-300/90 line-clamp-3 max-w-xl leading-relaxed"
+              >
+                {{ current.overview }}
+              </p>
+              <div class="mt-6 flex flex-wrap items-center gap-3">
+                <NuxtLink
+                  :to="linkOf(current)"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-semibold transition-colors shadow-lg shadow-indigo-950/40"
+                >
+                  View details
+                </NuxtLink>
+                <span v-if="scoreOf(current)" class="text-sm text-slate-400">
+                  ★ {{ scoreOf(current) }}
+                  <span v-if="yearOf(current)" class="text-slate-500"> · {{ yearOf(current) }}</span>
+                </span>
+              </div>
+            </div>
+          </Transition>
         </div>
-      </Transition>
+
+        <div
+          v-if="slides.length"
+          class="mt-8 flex gap-2"
+          role="tablist"
+          aria-label="Featured slides"
+        >
+          <button
+            v-for="(item, i) in slides"
+            :key="item.id"
+            type="button"
+            role="tab"
+            :aria-selected="i === index"
+            class="h-1.5 rounded-full transition-all duration-300"
+            :class="i === index ? 'w-8 bg-indigo-400' : 'w-3 bg-slate-600 hover:bg-slate-500'"
+            :aria-label="'Show ' + titleOf(item)"
+            @click="go(i)"
+          />
+        </div>
+      </template>
     </div>
   </section>
 </template>

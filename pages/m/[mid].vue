@@ -37,6 +37,7 @@ const route = useRoute()
 const { getMovie, backdropStyle } = useTmdb()
 const id = computed(() => String(route.params.mid || ''))
 
+// lazy on client so home→detail navigation is instant; skeleton shows while TMDB loads
 const { data, pending: loading, error: asyncError } = await useAsyncData(
   () => `movie-${id.value}`,
   async () => {
@@ -51,7 +52,7 @@ const { data, pending: loading, error: asyncError } = await useAsyncData(
       backdropImgPath: backdropStyle(movie.backdrop_path),
     }
   },
-  { watch: [id] },
+  { watch: [id], lazy: import.meta.client },
 )
 
 const movie = computed(() => data.value?.movie ?? null)

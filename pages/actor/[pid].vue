@@ -57,7 +57,7 @@ const { data, pending: loading, error: asyncError } = await useAsyncData(
     }
     return { person, credits, backdropImgPath }
   },
-  { watch: [id] },
+  { watch: [id], lazy: import.meta.client },
 )
 
 const person = computed(() => data.value?.person ?? null)
