@@ -7,7 +7,11 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
-  modules: ['@nuxtjs/tailwindcss'],
+  modules: [
+    '@nuxtjs/tailwindcss',
+    // v2 Nuxt integration — prefer module over hand-rolled plugin (SSR-safe)
+    '@vercel/analytics',
+  ],
 
   runtimeConfig: {
     /** Server-only TMDB v3 API key (never expose via public runtimeConfig). */

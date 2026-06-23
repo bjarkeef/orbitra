@@ -25,7 +25,7 @@ Hardening **before** more feature phases: Nuxt/runtime, handlers, shared TS util
 | Pages | `created()` client fetch, limited errors | OK for 1.x; prefer `useAsyncData` later |
 | TS | `tsconfig` present; Vue SFCs plain JS | Gradual typing via composables/server only |
 
-Latest Nuxt on npm at audit time: **4.x** available. **Decision:** stay on **Nuxt 3.15+** for this phase (smaller blast radius than Nuxt 4 migration). Nuxt 4 is Phase 4+ territory.
+**Update (phase 1.5 continued):** App now runs **Nuxt 4.4.8**. `@vercel/analytics` **2.x** via Nuxt module (no custom plugin). Single lockfile: **yarn** only (`package-lock.json` removed). Keep `@types/node` on **22.x** while local Node is 22.x (latest types package is 26 — skip until Node upgraded). Prefer Node **≥20.19** (ideally **≥22.18** for some transitive engine ranges).
 
 ---
 
