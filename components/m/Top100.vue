@@ -48,32 +48,28 @@ export default {
     };
   },
   async mounted() {
-    const api = await $fetch("/api/tmdb");
+    const { getTopRatedMovies } = useTmdb();
     this.loading = true;
-    const url =
-      "https://api.themoviedb.org/3/movie/top_rated?api_key=" + api.tmdbAPI;
-    const movies = await $fetch(url);
-    console.log(movies);
-    this.movies = movies.results;
-    this.loading = false;
+    try {
+      const movies = await getTopRatedMovies(1);
+      this.movies = movies.results || [];
+    } catch {
+      this.movies = [];
+    } finally {
+      this.loading = false;
+    }
   },
-
   methods: {
     async getMoreMovies(pageId) {
-      const api = await $fetch("/api/tmdb");
+      const { getTopRatedMovies } = useTmdb();
       this.loadingMoreMovies = true;
-      const url =
-        "https://api.themoviedb.org/3/movie/top_rated?api_key=" +
-        api.tmdbAPI +
-        "&page=" +
-        pageId;
-      const movies = await $fetch(url);
-      this.currentMoviePage++;
-
-      movies.results.forEach((v) => {
-        this.movies.push(v);
-      });
-      this.loadingMoreMovies = false;
+      try {
+        const movies = await getTopRatedMovies(pageId);
+        this.currentMoviePage++;
+        (movies.results || []).forEach((v) => this.movies.push(v));
+      } finally {
+        this.loadingMoreMovies = false;
+      }
     },
   },
 };

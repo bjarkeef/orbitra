@@ -88,25 +88,22 @@ export default {
     };
   },
   mounted() {
-    if (this.mtype === "movie") {
+    if (this.mtype === "movie" && this.object?.id) {
       this.getVideos();
     }
   },
   methods: {
     async getVideos() {
+      const { getMovieVideos } = useTmdb();
       this.fetching = true;
-
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/movie/" +
-        this.$route.params.mid +
-        "/videos" +
-        "?api_key=" +
-        api.tmdbAPI;
-
-      const data = await $fetch(url);
-      this.videos = data;
-      this.fetching = false;
+      try {
+        const id = this.object?.id || this.$route.params.mid;
+        this.videos = await getMovieVideos(id);
+      } catch {
+        this.videos = { results: [] };
+      } finally {
+        this.fetching = false;
+      }
     },
   },
 };

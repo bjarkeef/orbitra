@@ -48,41 +48,36 @@
 export default {
   data() {
     return {
-      movies: null,
+      movies: [],
       loading: false,
       loadingMoreShows: false,
       correntShowPage: 2,
-      mtype: "tv"
+      mtype: 'tv',
     }
   },
   async created() {
-    const api = this.$config.tmdbAPI
+    const { discoverTv } = useTmdb()
     this.loading = true
-    const url =
-      'https://api.themoviedb.org/3/discover/tv?sort_by=popularity.desc&&vote_count.gte=250&api_key=' +
-      api
-    const movies = await $fetch(url)
-    this.movies = movies.results
-    this.loading = false
+    try {
+      const movies = await discoverTv(1)
+      this.movies = movies.results || []
+    } catch {
+      this.movies = []
+    } finally {
+      this.loading = false
+    }
   },
-
   methods: {
     async getMoreShows(pageId) {
-      const api = this.$config.tmdbAPI
+      const { discoverTv } = useTmdb()
       this.loadingMoreShows = true
-      const url =
-        'https://api.themoviedb.org/3/discover/tv?sort_by=popularity.desc&&vote_count.gte=250&api_key=' +
-        api +
-        '&page=' +
-        pageId
-      const movies = await $fetch(url)
-      console.log(movies.results)
-      this.correntShowPage++
-
-      movies.results.forEach((v) => {
-        this.movies.push(v)
-      })
-      this.loadingMoreShows = false
+      try {
+        const movies = await discoverTv(pageId)
+        this.correntShowPage++
+        ;(movies.results || []).forEach((v) => this.movies.push(v))
+      } finally {
+        this.loadingMoreShows = false
+      }
     },
   },
 }

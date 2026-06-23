@@ -166,18 +166,15 @@ export default {
       }
     },
     async getExternalIdsTV() {
+      const { getTvExternalIds } = useTmdb();
       this.fetching = true;
-
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/tv/" +
-        this.object.id +
-        "/external_ids?api_key=" +
-        api.tmdbAPI;
-      const data = await $fetch(url);
-      console.log(data);
-      this.extIdsTV = data;
-      this.fetching = false;
+      try {
+        this.extIdsTV = await getTvExternalIds(this.object.id);
+      } catch {
+        this.extIdsTV = null;
+      } finally {
+        this.fetching = false;
+      }
     },
   },
 };

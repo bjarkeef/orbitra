@@ -1,35 +1,37 @@
-# FlameyTV
+# Orbitra
 
-Build with NuxtJS, TailwindCSS and using the [TMDB api](https://themoviedb.org).
+Movie & TV discovery on **Nuxt 3** + **Tailwind**, powered by [TMDB](https://www.themoviedb.org/).  
+Direction: map collaboration — **orbital co-star graphs** on person pages (in progress; see [ROADMAP.md](./ROADMAP.md)).
 
-[See it in action](https://flamey-tv.vercel.app/)
-
-If you have any suggestions or feedback, feel free to reach out to me.
-And if you like what you see, please consider starring the repo! 🌟
-
-
-## Build Setup
+## Setup
 
 ```bash
-# install dependencies
-$ yarn install
+# install
+yarn install
+# or: npm install
 
-# serve with hot reload at localhost:3000
-$ yarn dev
-
-# build for production and launch server
-$ yarn build
-$ yarn start
-
-# generate static project
-$ yarn generate
+# env (server-only — never expose to the client)
+cp .env.example .env
+# edit .env and set TMDB_API=your_key
 ```
 
-For detailed explanation on how things work, check out the [documentation](https://nuxtjs.org).
+Get a key from [TMDB API settings](https://www.themoviedb.org/settings/api).
 
+## Scripts
 
-### To enable the API
 ```bash
-# make a .env file and insert your API key like this:
-TMDB_API = "XXXXX"
+yarn dev        # http://localhost:3000
+yarn build      # production build
+yarn preview    # preview production build
+yarn generate   # static generation (if used)
 ```
+
+## Architecture notes
+
+- The browser calls **`/api/tmdb/*` only**. Nitro appends the TMDB key on the server.
+- Prefer `useTmdb()` helpers from `composables/useTmdb.ts` instead of talking to TMDB directly.
+- Track work in **ROADMAP.md** (Phase 1 foundation → Phase 2 orbital graph → polish).
+
+## TMDB attribution
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.

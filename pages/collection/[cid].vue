@@ -84,20 +84,17 @@ export default {
     }
   },
   async created() {
-    const api = await $fetch("/api/tmdb");
+    const { getCollection, backdropStyle } = useTmdb()
     this.loading = true
-    const url =
-      'https://api.themoviedb.org/3/collection/' +
-      this.$route.params.cid +
-      '?api_key=' +
-      api.tmdbAPI
-    const movie = await $fetch(url)
-    this.movie = movie
-    this.backdropImgPath.backgroundImage =
-      'url(https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/' +
-      movie.backdrop_path +
-      ')'
-    this.loading = false
+    try {
+      const movie = await getCollection(this.$route.params.cid)
+      this.movie = movie
+      this.backdropImgPath = backdropStyle(movie.backdrop_path)
+    } catch {
+      this.movie = null
+    } finally {
+      this.loading = false
+    }
   },
 }
 </script>

@@ -100,39 +100,29 @@ export default {
     };
   },
   async created() {
-    const api = await $fetch("/api/tmdb");
-    this.tv = this.$route.params.tvid;
-    this.season = this.$route.params.seasonnum;
-
+    const { getTvEpisode, getTvCredits, backdropStyle } = useTmdb();
+    const tvId = this.$route.params.tvid;
+    const seasonNum = this.$route.params.seasonnum;
+    const episodeNum = this.$route.params.episodenum;
     this.loading = true;
-    const url =
-      "https://api.themoviedb.org/3/tv/" +
-      this.tv +
-      "/season/" +
-      this.$route.params.seasonnum +
-      "/episode/" +
-      this.$route.params.episodenum +
-      "?api_key=" +
-      api.tmdbAPI;
-    const result = await $fetch(url);
-    this.episode = result;
-
-    this.getMovieCredits(this.$route.params.tvid);
-
-    this.loading = false;
+    try {
+      const result = await getTvEpisode(tvId, seasonNum, episodeNum);
+      this.episode = result;
+      this.backdropImgPath = backdropStyle(result?.still_path || null);
+      try {
+        const credits = await getTvCredits(tvId);
+        this.cast = credits.cast || [];
+      } catch {
+        this.cast = [];
+      }
+    } catch {
+      this.episode = null;
+    } finally {
+      this.loading = false;
+    }
   },
 
   methods: {
-    async getMovieCredits(ID) {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/tv/" +
-        ID +
-        "/credits?api_key=" +
-        api.tmdbAPI;
-      const credits = await $fetch(url);
-      this.cast = credits.cast;
-    },
   },
 };
 </script>

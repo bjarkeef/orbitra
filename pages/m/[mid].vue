@@ -6,6 +6,11 @@
       <div
         class="details w-2/3 mx-auto p-6 flex gap-6 bg-opacity-40 mt-5 bg-slate-700 shadow rounded-lg h-96 animate-pulse"></div>
     </div>
+    <div v-else-if="error" class="max-w-xl mx-auto py-16 px-6 text-center">
+      <p class="text-xl text-slate-300 mb-2">Could not load this movie</p>
+      <p class="text-slate-500 text-sm mb-6">{{ error }}</p>
+      <nuxt-link to="/" class="underline text-indigo-400">Back home</nuxt-link>
+    </div>
     <div v-else-if="movie">
       <div class="movie pb-5">
         <div
@@ -28,7 +33,7 @@
               class="xl:w-full basis-full flex-1"
               :movie="movie"></MCollection>
             <div
-              v-if="JSON.stringify(providers.results) != '{}'"
+              v-if="providers && providers.results && JSON.stringify(providers.results) != '{}'"
               class="bg-slate-800 rounded-lg p-5 mt-0 xl:mt-6 hidden xl:block">
               <h3 class="mb-4 text-2xl font-bold">Providers</h3>
               <MProviders :providers="providers"></MProviders>
@@ -50,62 +55,43 @@ export default {
     return {
       movie: null,
       loading: true,
-      showMore: false,
+      error: null,
       backdropImgPath: {
-        backgroundImage: "",
+        backgroundImage: '',
       },
       cast: [],
-      providers: [],
-    };
+      providers: null,
+    }
   },
   async created() {
-    const api = await $fetch("/api/tmdb");
-    this.loading = true;
-    const url =
-      "https://api.themoviedb.org/3/movie/" +
-      this.$route.params.mid +
-      "?api_key=" +
-      api.tmdbAPI;
-    const movie = await $fetch(url);
-    this.movie = movie;
-    this.backdropImgPath.backgroundImage =
-      "url(https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/" +
-      movie.backdrop_path +
-      ")";
+    const { getMovie, getMovieCredits, getMovieProviders, backdropStyle } = useTmdb()
+    const id = this.$route.params.mid
+    this.loading = true
+    this.error = null
+    try {
+      const movie = await getMovie(id)
+      this.movie = movie
+      this.backdropImgPath = backdropStyle(movie.backdrop_path)
 
-    this.getMovieCredits(this.$route.params.mid);
-    this.getMovieProviders(this.$route.params.mid);
-    this.loading = false;
+      const [credits, providers] = await Promise.all([
+        getMovieCredits(id).catch(() => ({ cast: [] })),
+        getMovieProviders(id).catch(() => null),
+      ])
+      this.cast = credits.cast || []
+      this.providers = providers
+    } catch (e) {
+      this.error = e?.statusMessage || e?.message || 'Unknown error'
+      this.movie = null
+    } finally {
+      this.loading = false
+    }
   },
-
-  methods: {
-    async getMovieCredits(movieID) {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/movie/" +
-        movieID +
-        "/credits?api_key=" +
-        api.tmdbAPI;
-      const credits = await $fetch(url);
-      this.cast = credits.cast;
-    },
-    async getMovieProviders(movieID) {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/movie/" +
-        movieID +
-        "/watch/providers?api_key=" +
-        api.tmdbAPI;
-      const providers = await $fetch(url);
-      this.providers = providers;
-    },
-  },
-};
+}
 </script>
 
 <style scoped>
 .banner:before {
-  content: "";
+  content: '';
   background-color: rgba(0, 0, 0, 0.8);
   width: 100%;
   height: 100%;

@@ -87,47 +87,35 @@ export default {
     };
   },
   async created() {
-    const api = await $fetch("/api/tmdb");
-    this.tv = this.$route.params.tvid;
+    const { getTv, getTvSeason, tmdb, backdropStyle } = useTmdb();
+    const tvId = this.$route.params.tvid;
+    const seasonNum = this.$route.params.seasonnum;
     this.loading = true;
-    const url =
-      "https://api.themoviedb.org/3/tv/" +
-      this.tv +
-      "/season/" +
-      this.$route.params.seasonnum +
-      "?api_key=" +
-      api.tmdbAPI;
-    const result = await $fetch(url);
-    this.season = result;
-
-    this.getMovieCredits(this.$route.params.tvid);
-    this.getTVName();
-
-    this.loading = false;
+    try {
+      const [show, result] = await Promise.all([
+        getTv(tvId).catch(() => null),
+        getTvSeason(tvId, seasonNum),
+      ]);
+      this.tv = show;
+      this.tvname = show?.name || null;
+      this.season = result;
+      this.backdropImgPath = backdropStyle(
+        show?.backdrop_path || result?.poster_path || null
+      );
+      try {
+        const credits = await tmdb(`tv/${tvId}/season/${seasonNum}/credits`);
+        this.cast = credits.cast || [];
+      } catch {
+        this.cast = [];
+      }
+    } catch {
+      this.season = null;
+    } finally {
+      this.loading = false;
+    }
   },
 
-  methods: {
-    async getMovieCredits(ID) {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/tv/" +
-        ID +
-        "/credits?api_key=" +
-        api.tmdbAPI;
-      const credits = await $fetch(url);
-      this.cast = credits.cast;
-    },
-    async getTVName() {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/tv/" +
-        this.$route.params.tvid +
-        "?api_key=" +
-        api.tmdbAPI;
-      const tv = await $fetch(url);
-      this.tvname = tv.name;
-    },
-  },
+  methods: {},
 };
 </script>
 

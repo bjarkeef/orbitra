@@ -2,14 +2,8 @@
   <div>
     <footer class="bg-slate-900 text-slate-200 text-sm flex p-4">
       <p>
-        FlameyTV - Portfolio project using TMDB - Work in progress -
-        <a
-          target="_blank"
-          rel="noopener nofollow"
-          href="https://github.com/FlameyFox/FlameyTV"
-          class="hover:underline transition-all"
-          >Github Repo</a
-        >
+        Orbitra — movie &amp; TV discovery via TMDB. Not endorsed by TMDB.
+        Work in progress; see ROADMAP.md for orbital graph direction.
       </p>
     </footer>
   </div>

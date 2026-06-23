@@ -114,41 +114,36 @@ export default {
     };
   },
   async created() {
-    const api = await $fetch("/api/tmdb");
+    const { getTv, getTvCredits, backdropStyle } = useTmdb();
+    const id = this.$route.params.tvid;
     this.loading = true;
-    const url =
-      "https://api.themoviedb.org/3/tv/" +
-      this.$route.params.tvid +
-      "?api_key=" +
-      api.tmdbAPI;
-    const result = await $fetch(url);
-    this.tv = result;
-    this.backdropImgPath.backgroundImage =
-      "url(https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/" +
-      result.backdrop_path +
-      ")";
-
-    this.getMovieCredits(this.$route.params.tvid);
-    this.loading = false;
+    try {
+      const result = await getTv(id);
+      this.tv = result;
+      this.backdropImgPath = backdropStyle(result.backdrop_path);
+      await this.getMovieCredits(id);
+    } catch {
+      this.tv = null;
+    } finally {
+      this.loading = false;
+    }
   },
 
   methods: {
     async getMovieCredits(ID) {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/tv/" +
-        ID +
-        "/credits?api_key=" +
-        api.tmdbAPI;
-      const credits = await $fetch(url);
-      this.cast = credits.cast;
-      this.crew = credits.crew;
+      const { getTvCredits } = useTmdb();
+      try {
+        const credits = await getTvCredits(ID);
+        this.cast = credits.cast || [];
+        this.crew = credits.crew || [];
+      } catch {
+        this.cast = [];
+        this.crew = [];
+      }
     },
     async getTVSeasons(ID, seasonNum) {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/tv/" + ID + "/season/" + seasonNum;
-      const season = await $fetch(url);
+      const { getTvSeason } = useTmdb();
+      const season = await getTvSeason(ID, seasonNum);
       this.season = season;
     },
   },

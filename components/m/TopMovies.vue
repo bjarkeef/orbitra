@@ -46,40 +46,35 @@
 export default {
   data() {
     return {
-      movies: null,
+      movies: [],
       loading: false,
       loadingMoreMovies: false,
       currentMoviePage: 2,
     };
   },
   async created() {
-    const api = this.$config.tmdbAPI;
+    const { discoverMovies } = useTmdb();
     this.loading = true;
-    const url =
-      "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&&vote_count.gte=250&api_key=" +
-      api;
-    const movies = await $fetch(url);
-    this.movies = movies.results;
-    this.loading = false;
+    try {
+      const movies = await discoverMovies(1);
+      this.movies = movies.results || [];
+    } catch {
+      this.movies = [];
+    } finally {
+      this.loading = false;
+    }
   },
-
   methods: {
     async getMoreMovies(pageId) {
-      const api = this.$config.tmdbAPI;
+      const { discoverMovies } = useTmdb();
       this.loadingMoreMovies = true;
-      const url =
-        "https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&&vote_count.gte=250&api_key=" +
-        api +
-        "&page=" +
-        pageId;
-      const movies = await $fetch(url);
-      console.log(movies.results);
-      this.currentMoviePage++;
-
-      movies.results.forEach((v) => {
-        this.movies.push(v);
-      });
-      this.loadingMoreMovies = false;
+      try {
+        const movies = await discoverMovies(pageId);
+        this.currentMoviePage++;
+        (movies.results || []).forEach((v) => this.movies.push(v));
+      } finally {
+        this.loadingMoreMovies = false;
+      }
     },
   },
 };

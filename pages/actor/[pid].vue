@@ -8,9 +8,13 @@
         class="details w-2/3 mx-auto p-6 flex gap-6 bg-opacity-40 mt-5 bg-slate-700 shadow rounded-lg h-96 animate-pulse"></div>
       Loading...
     </div>
+    <div v-else-if="error" class="max-w-xl mx-auto py-16 px-6 text-center">
+      <p class="text-xl text-slate-300 mb-2">Could not load this person</p>
+      <p class="text-slate-500 text-sm mb-6">{{ error }}</p>
+      <nuxt-link to="/" class="underline text-indigo-400">Back home</nuxt-link>
+    </div>
     <div v-else-if="person">
       <div class="actor pb-5">
-        <!-- TODO: MAKE ALT BANNER PICTURE -->
         <div
           class="banner bg-cover bg-no-repeat bg-center relative h-96"
           :style="backdropImgPath"></div>
@@ -36,19 +40,103 @@
                 <p>{{ person.biography }}</p>
               </div>
             </div>
+
             <div class="bg-slate-800 rounded-lg p-5 mt-6">
-              <h3 class="mb-4 text-2xl font-bold">Filmography</h3>
-              <div v-if="credits && credits.length > 1">
-                <div class="grid grid-cols-4 gap-6">
-                  <!-- FIXME: TODO:
-                        Remove duplicate entries when an actor voices more characters
-                        maybe check media type and show which character if it's a tv show
-                         -->
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <h3 class="text-2xl font-bold">
+                  {{ viewMode === 'graph' ? 'Co-star orbit' : 'Filmography' }}
+                </h3>
+                <div class="flex rounded-lg overflow-hidden border border-slate-600 text-sm">
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 transition"
+                    :class="viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-700'"
+                    @click="viewMode = 'grid'"
+                  >
+                    Grid
+                  </button>
+                  <button
+                    type="button"
+                    class="px-3 py-1.5 transition"
+                    :class="viewMode === 'graph' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-700'"
+                    @click="viewMode = 'graph'"
+                  >
+                    Orbit
+                  </button>
+                </div>
+              </div>
+
+              <div v-if="viewMode === 'graph'">
+                <ActorGraph
+                  :person="person"
+                  :credits="credits"
+                  :max-projects="maxProjects"
+                  :top-cast-per-project="8"
+                  @select="onNodeSelect"
+                  @insights="onInsights"
+                />
+
+                <div
+                  v-if="selectedNode"
+                  class="mt-4 p-4 rounded-lg bg-slate-900/80 border border-slate-700 flex flex-wrap gap-4 items-start"
+                >
+                  <img
+                    v-if="selectedNode.image"
+                    :src="imageUrl(selectedNode)"
+                    :alt="selectedNode.label"
+                    class="w-16 h-16 rounded-lg object-cover bg-slate-800"
+                  />
+                  <div
+                    v-else
+                    class="w-16 h-16 rounded-lg bg-slate-800 flex items-center justify-center text-2xl"
+                  >
+                    {{ selectedNode.type === 'project' ? '🎬' : '👤' }}
+                  </div>
+                  <div class="flex-1 min-w-[12rem]">
+                    <p class="text-xs uppercase tracking-wide text-slate-500 mb-0.5">
+                      {{ nodeTypeLabel(selectedNode) }}
+                    </p>
+                    <h4 class="text-lg font-bold">{{ selectedNode.label }}</h4>
+                    <p v-if="selectedNode.year" class="text-sm text-slate-400">
+                      {{ selectedNode.year }}
+                      <span v-if="selectedNode.character"> · as {{ selectedNode.character }}</span>
+                    </p>
+                    <p v-if="selectedNode.collabCount" class="text-sm text-rose-300 mt-1">
+                      Collaborated {{ selectedNode.collabCount }} times with {{ person.name }}
+                    </p>
+                    <p v-if="selectedNode.voteAverage" class="text-sm text-slate-400 mt-1">
+                      ★ {{ selectedNode.voteAverage.toFixed(1) }}
+                      <span v-if="selectedNode.voteCount"> · {{ selectedNode.voteCount.toLocaleString() }} votes</span>
+                    </p>
+                  </div>
+                  <div class="flex gap-2">
+                    <nuxt-link
+                      v-if="selectedNode.type === 'project'"
+                      :to="projectLink(selectedNode)"
+                      class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm"
+                    >
+                      Open {{ selectedNode.mediaType === 'tv' ? 'show' : 'movie' }}
+                    </nuxt-link>
+                    <nuxt-link
+                      v-else-if="selectedNode.type !== 'actor'"
+                      :to="'/actor/' + selectedNode.tmdbId"
+                      class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm"
+                    >
+                      Open person
+                    </nuxt-link>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else>
+                <div
+                  class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                >
                   <MMovie
                     :movie="movie"
                     :loading="loading"
                     v-for="movie in credits.slice(0, 20)"
-                    :key="movie.id"
+                    :key="movie.id + '-' + (movie.credit_id || movie.character || '')"
                     :mtype="movie.media_type" />
                 </div>
               </div>
@@ -61,59 +149,79 @@
 </template>
 
 <script>
+import ActorGraph from '~/components/actor/ActorGraph.vue'
+
 export default {
+  components: { ActorGraph },
   data() {
     return {
       person: null,
       loading: true,
-      showMore: false,
+      error: null,
       backdropImgPath: {
-        backgroundImage: "",
+        backgroundImage: '',
       },
       credits: [],
-    };
+      viewMode: 'grid',
+      selectedNode: null,
+      insights: null,
+      maxProjects: 30,
+    }
   },
   async created() {
-    const api = await $fetch("/api/tmdb");
-    this.loading = true;
-    const url =
-      "https://api.themoviedb.org/3/person/" +
-      this.$route.params.pid +
-      "?api_key=" +
-      api.tmdbAPI;
-    const person = await $fetch(url);
-    this.person = person;
-    this.getPersonMovieCredits();
-    this.loading = false;
+    const { getPerson, getPersonCombinedCredits, backdropStyle } = useTmdb()
+    const id = this.$route.params.pid
+    this.loading = true
+    this.error = null
+    try {
+      const person = await getPerson(id)
+      this.person = person
+      const creditsPayload = await getPersonCombinedCredits(id)
+      this.credits = (creditsPayload.cast || [])
+        .slice()
+        .sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))
+
+      const withBackdrop = this.credits.filter((c) => c.backdrop_path)
+      if (withBackdrop.length) {
+        const pick = withBackdrop[Math.floor(Math.random() * withBackdrop.length)]
+        this.backdropImgPath = backdropStyle(pick.backdrop_path)
+      }
+    } catch (e) {
+      this.error = e?.statusMessage || e?.message || 'Unknown error'
+      this.person = null
+    } finally {
+      this.loading = false
+    }
   },
   methods: {
-    async getPersonMovieCredits() {
-      const api = await $fetch("/api/tmdb");
-      const url =
-        "https://api.themoviedb.org/3/person/" +
-        this.$route.params.pid +
-        "/combined_credits?api_key=" +
-        api.tmdbAPI;
-      const credits = await $fetch(url);
-      this.credits = credits.cast;
-      this.credits.sort((a, b) => b.vote_count - a.vote_count);
-      // TODO: Maybe sort movies differently
-
-      if (credits && credits.cast.length > 1) {
-        this.backdropImgPath.backgroundImage =
-          "url(https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/" +
-          credits.cast[Math.floor(Math.random() * credits.cast.length)]
-            .backdrop_path +
-          ")";
-      }
+    onNodeSelect(node) {
+      this.selectedNode = node
+    },
+    onInsights(insights) {
+      this.insights = insights
+    },
+    nodeTypeLabel(n) {
+      if (!n) return ''
+      if (n.type === 'actor') return 'Actor (center)'
+      if (n.type === 'project') return n.mediaType === 'tv' ? 'TV show' : 'Movie'
+      if (n.type === 'repeat') return 'Repeat collaborator'
+      return 'Co-star'
+    },
+    imageUrl(n) {
+      if (!n?.image) return ''
+      const { imageUrl } = useTmdb()
+      return imageUrl(n.image, 'w185')
+    },
+    projectLink(n) {
+      return n.mediaType === 'tv' ? `/tv/${n.tmdbId}` : `/m/${n.tmdbId}`
     },
   },
-};
+}
 </script>
 
 <style scoped>
 .banner:before {
-  content: "";
+  content: '';
   background-color: rgba(0, 0, 0, 0.8);
   width: 100%;
   height: 100%;
