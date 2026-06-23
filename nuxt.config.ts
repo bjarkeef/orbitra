@@ -2,7 +2,8 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
-  devtools: { enabled: true },
+  // Quieter / fewer layout surprises while stabilizing Nuxt 4
+  devtools: { enabled: false },
 
   css: ['~/assets/css/main.css'],
 
@@ -35,5 +36,14 @@ export default defineNuxtConfig({
   typescript: {
     strict: false,
     typeCheck: false,
+  },
+
+  vite: {
+    // Avoid aggressive HMR edge cases while layouts settle on Nuxt 4
+    server: {
+      watch: {
+        usePolling: false,
+      },
+    },
   },
 })
