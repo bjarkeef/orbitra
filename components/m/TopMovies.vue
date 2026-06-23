@@ -23,7 +23,7 @@
           :movie="movie"
           :loading="loading"
           v-for="movie in movies.slice(0, 12)"
-          :key="movie.id" />
+          :key="movie.id" mtype="movie" />
       </div>
       <div
         v-else
@@ -32,7 +32,7 @@
           :movie="movie"
           :loading="loading"
           v-for="movie in movies"
-          :key="movie.id" />
+          :key="movie.id" mtype="movie" />
       </div>
     </div>
     <button

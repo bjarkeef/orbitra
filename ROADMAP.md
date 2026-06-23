@@ -23,11 +23,11 @@ Neutral movie/TV discovery app powered by TMDB, with an **orbital co-star graph*
 - [x] Create this roadmap
 - [x] Neutralize UI/docs branding (header, footer, README, package name)
 - [x] Keep actor graph WIP on branch-friendly files (grid default, no key in client long-term)
-- [ ] Open / seed **private** remote repo named `orbitra` (manual — you own credentials)
+- [x] Private remote `bjarkeef/orbitra` (`main` default; phase branches for work)
 
 ---
 
-## Phase 1 — Foundation (security + data layer)  ← **current**
+## Phase 1 — Foundation (security + data layer)
 
 Goal: API key never reaches the browser; hot paths use one proxy + composable; basic errors; search not broken.
 
@@ -58,6 +58,31 @@ Goal: API key never reaches the browser; hot paths use one proxy + composable; b
 - [ ] Network tab shows only `/api/tmdb/...` — never `api_key=` query to themoviedb.org from the browser
 - [ ] `TMDB_API` missing → clear server error, not silent blank UI on all pages
 - [ ] Search with 1 result works; typing is debounced
+
+
+
+---
+
+## Phase 1.5 — Core revamp & audit  ← **current** (`orbitra-phase-1.5`)
+
+Goal: make the **platform trustworthy** before Phase 2 merge / Phase 3 polish. No new product features unless they unblock broken core paths.
+
+See also: [docs/CORE_AUDIT.md](./docs/CORE_AUDIT.md)
+
+- [x] Branch from `main` (Phase 2 stays on `orbitra-phase-2`)
+- [x] Written core audit (stack, handlers, cards, Nuxt)
+- [x] `server/utils/tmdb.ts` shared Nitro helper; proxy delegates to it
+- [x] Nuxt config: `compatibilityDate`, app title/meta, drop unused plugin array entry
+- [x] Analytics plugin → `defineNuxtPlugin` (`plugins/vercel.client.ts`)
+- [x] Layout/header semantics (remove Nuxt 2 transition, fix nav markup)
+- [x] Fix `MMovie` media-kind resolution (Top 100 / popular lists)
+- [x] Pin package intent to Nuxt 3.15+ (run `yarn` to refresh lock on implementer machine)
+- [ ] Run `yarn install` + `yarn dev` smoke (hero, search, /100, movie page)
+- [ ] Remove unused lockfile (`package-lock.json` **or** standardize on npm only)
+- [ ] Optional: `useAsyncData` on home/movie as pilot for SSR
+
+**Merge policy:** land Phase 1.5 on `main` before rebased Phase 2 PR.
+
 
 ---
 

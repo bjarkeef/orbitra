@@ -1,20 +1,39 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  compatibilityDate: '2024-11-01',
+
   devtools: { enabled: true },
+
   css: ['~/assets/css/main.css'],
-  plugins: [{ src: '~/plugins/vercel.js', mode: 'client' }],
-  runtimeConfig: {
-    tmdbAPI: process.env.TMDB_API,
-  },
+
   modules: ['@nuxtjs/tailwindcss'],
+
+  runtimeConfig: {
+    /** Server-only TMDB v3 API key (never expose via public runtimeConfig). */
+    tmdbAPI: process.env.TMDB_API || '',
+  },
+
   app: {
     head: {
+      title: 'Orbitra',
+      meta: [
+        {
+          name: 'description',
+          content: 'Orbitra — map the orbits of film and television (TMDB).',
+        },
+      ],
+      htmlAttrs: { lang: 'en' },
       link: [
         {
           rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Nunito&display=swap',
+          href: 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap',
         },
       ],
     },
+  },
+
+  typescript: {
+    strict: false,
+    typeCheck: false,
   },
 })
