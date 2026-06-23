@@ -13,7 +13,7 @@ Neutral movie/TV discovery app powered by TMDB, with an **orbital co-star graph*
 | **Name** | **Orbitra** |
 | **Tagline** | Map the orbits of film & television |
 | **Why this name** | Orbital metaphor fits the co-star / collaboration graph; neutral, not personal; short and memorable for a private repo |
-| **Old names to remove** | FlameyTV, FLAMEY TV, flamey-tv, FlameyFox branding in UI |
+| **Old names to remove** | Legacy personal portfolio branding (cleared from UI/docs) |
 
 ---
 
