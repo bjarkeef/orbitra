@@ -1,132 +1,65 @@
 <template>
   <div>
-    <div v-if="loading">
-      <div
-        class="bg-slate-700 shadow rounded-md p-4 h-96 w-full mx-auto animate-pulse"></div>
-      <div
-        class="details w-2/3 mx-auto p-6 flex gap-6 bg-opacity-40 mt-5 bg-slate-700 shadow rounded-lg h-96 animate-pulse"></div>
-      Loading...
+    <div v-if="loading"><div class="bg-slate-700 h-96 animate-pulse" /></div>
+    <div v-else-if="error" class="max-w-xl mx-auto py-16 px-6 text-center">
+      <p class="text-xl text-slate-300 mb-2">Could not load this season</p>
+      <p class="text-slate-500 text-sm mb-6">{{ error }}</p>
+      <NuxtLink :to="'/tv/' + tvId" class="underline text-indigo-400">Back to show</NuxtLink>
     </div>
     <div v-else-if="season">
-      <div class="tv pb-5">
-        <!-- TODO: MAKE ALT BANNER PICTURE -->
-        <div
-          class="banner bg-cover bg-no-repeat bg-center relative h-96"
-          :style="backdropImgPath"></div>
-        <div
-          class="details w-2/3 mx-auto p-6 flex gap-6 bg-slate-900 bg-opacity-40 mt-5 rounded-lg">
-          <div class="w-1/3">
-            <img
-              v-if="season.poster_path"
-              :src="'https://image.tmdb.org/t/p/w500/' + season.poster_path"
-              :alt="season.name"
-              class="rounded-md" />
-            <img
-              class="bg-slate-900 rounded-md"
-              v-else
-              src="@/assets/img/noPoster.png"
-              alt="No Poster" />
-
-            <div class="bg-slate-800 rounded-lg p-5 mt-6">
-              <h3 class="text-2xl mb-3 font-bold">Information</h3>
-              <p>
-                Rating:
-                {{
-                  season.vote_average ? season.vote_average.toFixed(1) : "---"
-                }}
-              </p>
-            </div>
+      <div class="banner bg-cover bg-no-repeat bg-center relative h-96" :style="backdropImgPath" />
+      <div class="details w-2/3 mx-auto p-6 flex gap-6 bg-slate-900 bg-opacity-40 mt-5 rounded-lg">
+        <div class="w-1/3">
+          <img v-if="season.poster_path" :src="img(season.poster_path)" :alt="season.name" class="rounded-md" loading="lazy" />
+          <img v-else src="@/assets/img/noPoster.png" class="rounded-md bg-slate-900" alt="No Poster" />
+        </div>
+        <div class="w-2/3">
+          <NuxtLink class="bg-slate-700 text-sm rounded-md py-1 px-3 inline-block" :to="'/tv/' + tvId">Go back to show</NuxtLink>
+          <h1 class="mt-5 text-4xl font-bold mb-2">{{ tvname ? tvname + ' – ' + season.name : season.name }}</h1>
+          <p class="mb-4">{{ season.overview }}</p>
+          <div v-if="cast.length" class="bg-slate-800 rounded-lg p-5 scrollbar mt-6 overflow-x-scroll">
+            <h3 class="mb-4 text-2xl font-bold">Cast</h3>
+            <TvCast :cast="cast" />
           </div>
-          <div class="w-2/3">
-            <div class="flex gap-6">
-              <div class="bg-slate-800 w-full rounded-lg p-5">
-                <nuxt-link
-                  class="bg-slate-700 text-sm rounded-md py-1 px-3"
-                  :to="'/tv/' + this.$route.params.tvid"
-                  >Go back to show</nuxt-link
-                >
-                <h1 v-if="!!this.tvname" class="mt-5 text-4xl font-bold mb-2">
-                  {{ this.tvname + " – " + season.name }}
-                </h1>
-                <h1 v-else class="mt-5 text-4xl font-bold mb-2">
-                  {{ season.name }}
-                </h1>
-                <hr class="border-slate-900 border-opacity-50 mb-4" />
-                <p>{{ season.overview }}</p>
-              </div>
-            </div>
-
-            <div
-              class="bg-slate-800 rounded-lg p-5 scrollbar mt-6 overflow-x-scroll">
-              <h3 class="mb-4 text-2xl font-bold">Cast</h3>
-              <TvCast :cast="cast"></TvCast>
-            </div>
-            <TvEpisodes
-              v-if="season.episodes"
-              :tv="tv"
-              :season="season"></TvEpisodes>
-          </div>
+          <TvEpisodes v-if="season.episodes" :tv="tv" :season="season" />
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      season: null,
-      tv: null,
-      loading: true,
-      backdropImgPath: {
-        backgroundImage: "",
-      },
-      cast: [],
-      tvname: null,
-    };
-  },
-  async created() {
-    const { getTv, getTvSeason, tmdb, backdropStyle } = useTmdb();
-    const tvId = this.$route.params.tvid;
-    const seasonNum = this.$route.params.seasonnum;
-    this.loading = true;
-    try {
-      const [show, result] = await Promise.all([
-        getTv(tvId).catch(() => null),
-        getTvSeason(tvId, seasonNum),
-      ]);
-      this.tv = show;
-      this.tvname = show?.name || null;
-      this.season = result;
-      this.backdropImgPath = backdropStyle(
-        show?.backdrop_path || result?.poster_path || null
-      );
-      try {
-        const credits = await tmdb(`tv/${tvId}/season/${seasonNum}/credits`);
-        this.cast = credits.cast || [];
-      } catch {
-        this.cast = [];
-      }
-    } catch {
-      this.season = null;
-    } finally {
-      this.loading = false;
-    }
-  },
+<script setup>
+const route = useRoute()
+const { getTv, getTvSeason, tmdb, backdropStyle, imageUrl } = useTmdb()
+const tvId = computed(() => String(route.params.tvid || ''))
+const seasonNum = computed(() => String(route.params.seasonnum || ''))
 
-  methods: {},
-};
+const { data, pending: loading, error: asyncError } = await useAsyncData(
+  () => `tv-${tvId.value}-season-${seasonNum.value}`,
+  async () => {
+    const [show, season] = await Promise.all([
+      getTv(tvId.value).catch(() => null),
+      getTvSeason(tvId.value, seasonNum.value),
+    ])
+    let cast = []
+    try {
+      const credits = await tmdb(`tv/${tvId.value}/season/${seasonNum.value}/credits`)
+      cast = credits.cast || []
+    } catch { cast = [] }
+    return { tv: show, tvname: show?.name || null, season, cast, backdropImgPath: backdropStyle(show?.backdrop_path || season?.poster_path) }
+  },
+  { watch: [tvId, seasonNum] },
+)
+
+const tv = computed(() => data.value?.tv ?? null)
+const tvname = computed(() => data.value?.tvname ?? null)
+const season = computed(() => data.value?.season ?? null)
+const cast = computed(() => data.value?.cast ?? [])
+const backdropImgPath = computed(() => data.value?.backdropImgPath ?? { backgroundImage: '' })
+const error = computed(() => (!asyncError.value ? null : (asyncError.value?.statusMessage || asyncError.value?.message || 'Unknown error')))
+function img(path) { return imageUrl(path, 'w500') }
 </script>
 
 <style scoped>
-.banner:before {
-  content: "";
-  background-color: rgba(0, 0, 0, 0.8);
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
+.banner:before { content: ''; background-color: rgba(0,0,0,.8); width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
 </style>

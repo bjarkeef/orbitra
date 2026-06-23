@@ -76,10 +76,15 @@ See also: [docs/CORE_AUDIT.md](./docs/CORE_AUDIT.md)
 - [x] Analytics plugin → `defineNuxtPlugin` (`plugins/vercel.client.ts`)
 - [x] Layout/header semantics (remove Nuxt 2 transition, fix nav markup)
 - [x] Fix `MMovie` media-kind resolution (Top 100 / popular lists)
-- [x] Pin package intent to Nuxt 3.15+ (run `yarn` to refresh lock on implementer machine)
-- [ ] Run `yarn install` + `yarn dev` smoke (hero, search, /100, movie page)
-- [ ] Remove unused lockfile (`package-lock.json` **or** standardize on npm only)
-- [ ] Optional: `useAsyncData` on home/movie as pilot for SSR
+- [x] Nuxt 4.4 + analytics v2 module; yarn-only lockfile
+- [x] Layout hydration fix (template-only chrome)
+- [x] Actor page on 1.5 is **grid-only** (orbit stays on `orbitra-phase-2`)
+- [x] Movie pilot: `useAsyncData` + `append_to_response` (credits/providers/videos)
+- [x] Detail routes: loading + error (TV, person, collection, season, episode)
+- [x] `Poster` presentational only (videos from parent)
+- [x] Cast thumbs via `imageUrl`; list pagination uses sequential `page` counters
+- [x] TMDB proxy root allowlist
+- [ ] Final `yarn build` + browser smoke before merge to `main`
 
 **Merge policy:** land Phase 1.5 on `main` before rebased Phase 2 PR.
 

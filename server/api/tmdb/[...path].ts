@@ -2,6 +2,24 @@
  * Server-only TMDB proxy.
  * Client calls /api/tmdb/movie/550 — never sees TMDB_API.
  */
+const ALLOWED_ROOTS = new Set([
+  'movie',
+  'tv',
+  'person',
+  'search',
+  'trending',
+  'discover',
+  'collection',
+  'genre',
+  'configuration',
+  'credit',
+  'keyword',
+  'company',
+  'network',
+  'watch',
+  'certification',
+])
+
 export default defineEventHandler(async (event) => {
   requireTmdbApiKey()
 
@@ -21,6 +39,14 @@ export default defineEventHandler(async (event) => {
 
   if (segments.some((s) => !s || s === '..' || s.includes('\\') || s.includes('\0'))) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid path' })
+  }
+
+  const root = segments[0]
+  if (!ALLOWED_ROOTS.has(root)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `TMDB path root "${root}" is not allowed`,
+    })
   }
 
   const query = getQuery(event) as Record<string, unknown>

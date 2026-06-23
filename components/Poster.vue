@@ -1,110 +1,50 @@
 <template>
   <div>
-    <div class="relative" v-if="this.mtype === 'tv'">
-      <img
-        v-if="object.poster_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + object.poster_path"
-        :alt="object.name"
-        class="rounded-md" />
-      <img
-        class="bg-slate-900 rounded-md"
-        v-else
-        src="@/assets/img/noPoster.png"
-        alt="No Poster" />
+    <div v-if="mtype === 'tv'" class="relative">
+      <img v-if="object.poster_path" :src="posterSrc" :alt="object.name || object.title" class="rounded-md" loading="lazy" />
+      <img v-else class="bg-slate-900 rounded-md" src="@/assets/img/noPoster.png" alt="No Poster" />
     </div>
-    <div class="relative" v-else-if="this.mtype === 'movie'">
-      <img
-        v-if="object.poster_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + object.poster_path"
-        :alt="object.name"
-        class="rounded-md" />
-      <img
-        class="bg-slate-900 rounded-md"
-        v-else
-        src="@/assets/img/noPoster.png"
-        alt="No Poster" />
-      <div
-        class="absolute top-3 left-3 bg-slate-700 py-1 px-2 rounded-md text-sm"
-        v-if="this.videos && this.fetching === false">
-        <a
-          target="_blank"
-          :href="'https://youtube.com/watch?v=' + this.videos.results[0].key"
-          v-if="this.videos.results.length > 0"
-          >Watch Trailer</a
-        >
+    <div v-else-if="mtype === 'movie'" class="relative">
+      <img v-if="object.poster_path" :src="posterSrc" :alt="object.title || object.name" class="rounded-md" loading="lazy" />
+      <img v-else class="bg-slate-900 rounded-md" src="@/assets/img/noPoster.png" alt="No Poster" />
+      <div v-if="trailerKey" class="absolute top-3 left-3 bg-slate-700 py-1 px-2 rounded-md text-sm">
+        <a target="_blank" rel="noopener noreferrer" :href="'https://youtube.com/watch?v=' + trailerKey">Watch Trailer</a>
       </div>
-      <div
-        class="absolute top-3 left-3 bg-slate-700 py-1 px-2 rounded-md text-sm"
-        v-if="this.object.adult">
-        <span class="text-xl">18+</span>
-      </div>
+      <div v-if="object.adult" class="absolute top-3 left-3 bg-slate-700 py-1 px-2 rounded-md text-sm"><span class="text-xl">18+</span></div>
     </div>
-    <div v-else-if="this.mtype === 'person'">
-      <img
-        v-if="object.profile_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + object.profile_path"
-        :alt="object.name"
-        class="rounded-md" />
-      <img
-        class="bg-slate-900 rounded-md"
-        v-else
-        src="@/assets/img/noPoster.png"
-        alt="No Poster" />
-    </div>
-    <div v-else-if="this.mtype === 'collection'">
-      <img
-        v-if="object.poster_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + object.poster_path"
-        :alt="object.name"
-        class="rounded-md" />
-      <img
-        class="bg-slate-900 rounded-md"
-        v-else
-        src="@/assets/img/noPoster.png"
-        alt="No Poster" />
+    <div v-else-if="mtype === 'person'">
+      <img v-if="object.profile_path" :src="profileSrc" :alt="object.name" class="rounded-md" loading="lazy" />
+      <img v-else class="bg-slate-900 rounded-md" src="@/assets/img/noPoster.png" alt="No Poster" />
     </div>
     <div v-else>
-      <img
-        v-if="object.poster_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + object.poster_path"
-        :alt="object.name"
-        class="rounded-md" />
-      <img
-        class="bg-slate-900 rounded-md"
-        v-else
-        src="@/assets/img/noPoster.png"
-        alt="No Poster" />
+      <img v-if="object.poster_path" :src="posterSrc" :alt="object.name || object.title" class="rounded-md" loading="lazy" />
+      <img v-else class="bg-slate-900 rounded-md" src="@/assets/img/noPoster.png" alt="No Poster" />
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  props: ["object", "mtype"],
-  data() {
-    return {
-      videos: null,
-      fetching: false,
-    };
+  props: {
+    object: { type: Object, required: true },
+    mtype: { type: String, default: '' },
+    videos: { type: Object, default: null },
   },
-  mounted() {
-    if (this.mtype === "movie" && this.object?.id) {
-      this.getVideos();
-    }
-  },
-  methods: {
-    async getVideos() {
-      const { getMovieVideos } = useTmdb();
-      this.fetching = true;
-      try {
-        const id = this.object?.id || this.$route.params.mid;
-        this.videos = await getMovieVideos(id);
-      } catch {
-        this.videos = { results: [] };
-      } finally {
-        this.fetching = false;
-      }
+  computed: {
+    posterSrc() {
+      const { imageUrl } = useTmdb()
+      return this.object?.poster_path ? imageUrl(this.object.poster_path, 'w500') : ''
+    },
+    profileSrc() {
+      const { imageUrl } = useTmdb()
+      return this.object?.profile_path ? imageUrl(this.object.profile_path, 'w500') : ''
+    },
+    trailerKey() {
+      const results = this.videos?.results
+      if (!Array.isArray(results) || !results.length) return ''
+      const yt = results.find((v) => v.site === 'YouTube' && v.type === 'Trailer') || results[0]
+      return yt?.key || ''
     },
   },
-};
+}
 </script>
