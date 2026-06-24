@@ -6,8 +6,8 @@
       <div class="detail-panel">
         <div class="w-full xl:w-1/3">
           <img
-            v-if="season.poster_path"
-            :src="'https://image.tmdb.org/t/p/w500/' + season.poster_path"
+            v-if="seasonPosterSrc"
+            :src="seasonPosterSrc"
             :alt="season.name"
             class="rounded-md w-full bg-slate-900"
             loading="lazy"
@@ -62,6 +62,10 @@
 
 <script>
 export default {
+  setup() {
+    const { getTv, getTvSeason, getTvSeasonCredits, backdropStyle, imageUrl } = useTmdb()
+    return { getTv, getTvSeason, getTvSeasonCredits, backdropStyle, imageUrl }
+  },
   data() {
     return {
       season: null,
@@ -74,24 +78,28 @@ export default {
       tvname: null,
     };
   },
+  computed: {
+    seasonPosterSrc() {
+      return this.imageUrl(this.season?.poster_path, 'w500')
+    },
+  },
   async created() {
-    const { getTv, getTvSeason, tmdb, backdropStyle } = useTmdb();
     const tvId = this.$route.params.tvid;
     const seasonNum = this.$route.params.seasonnum;
     this.loading = true;
     try {
       const [show, result] = await Promise.all([
-        getTv(tvId).catch(() => null),
-        getTvSeason(tvId, seasonNum),
+        this.getTv(tvId).catch(() => null),
+        this.getTvSeason(tvId, seasonNum),
       ]);
       this.tv = show;
       this.tvname = show?.name || null;
       this.season = result;
-      this.backdropImgPath = backdropStyle(
+      this.backdropImgPath = this.backdropStyle(
         show?.backdrop_path || result?.poster_path || null
       );
       try {
-        const credits = await tmdb(`tv/${tvId}/season/${seasonNum}/credits`);
+        const credits = await this.getTvSeasonCredits(tvId, seasonNum);
         this.cast = credits.cast || [];
       } catch {
         this.cast = [];
@@ -102,7 +110,5 @@ export default {
       this.loading = false;
     }
   },
-
-  methods: {},
 };
 </script>

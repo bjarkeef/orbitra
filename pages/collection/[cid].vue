@@ -30,8 +30,8 @@
               >
                 <div class="w-1/3 shrink-0">
                   <img
-                    v-if="part.poster_path"
-                    :src="'https://image.tmdb.org/t/p/w500/' + part.poster_path"
+                    v-if="posterSrc(part)"
+                    :src="posterSrc(part)"
                     :alt="part.title"
                     class="rounded-md w-full bg-slate-900"
                     loading="lazy"
@@ -58,7 +58,7 @@
 
 <script setup>
 const route = useRoute()
-const { getCollection, backdropStyle } = useTmdb()
+const { getCollection, backdropStyle, imageUrl } = useTmdb()
 
 const id = computed(() => String(route.params.cid))
 
@@ -78,4 +78,8 @@ const errorMsg = computed(() => {
   if (!e) return null
   return e.statusMessage || e.message || 'Unknown error'
 })
+
+function posterSrc(part) {
+  return imageUrl(part?.poster_path, 'w500')
+}
 </script>

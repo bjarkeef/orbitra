@@ -61,8 +61,8 @@
               >
                 <div class="w-1/3 shrink-0">
                   <img
-                    v-if="season.poster_path"
-                    :src="'https://image.tmdb.org/t/p/w500/' + season.poster_path"
+                    v-if="seasonPoster(season)"
+                    :src="seasonPoster(season)"
                     :alt="season.name"
                     class="rounded-md w-full bg-slate-900"
                     loading="lazy"
@@ -90,7 +90,7 @@
 
 <script setup>
 const route = useRoute()
-const { getTv, getTvCredits, backdropStyle } = useTmdb()
+const { getTv, getTvCredits, backdropStyle, imageUrl } = useTmdb()
 
 const id = computed(() => String(route.params.tvid))
 
@@ -125,4 +125,8 @@ const errorMsg = computed(() => {
   if (!e) return null
   return e.statusMessage || e.message || 'Unknown error'
 })
+
+function seasonPoster(season) {
+  return imageUrl(season?.poster_path, 'w500')
+}
 </script>

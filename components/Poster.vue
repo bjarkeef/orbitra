@@ -3,8 +3,8 @@
     <!-- Person profile -->
     <div v-if="mtype === 'person'">
       <img
-        v-if="object.profile_path"
-        :src="imgBase + object.profile_path"
+        v-if="profileSrc"
+        :src="profileSrc"
         :alt="label"
         class="rounded-lg w-full ring-1 ring-slate-700/50"
         loading="lazy"
@@ -20,8 +20,8 @@
     <!-- TV / movie / collection poster -->
     <div v-else class="relative">
       <img
-        v-if="object.poster_path"
-        :src="imgBase + object.poster_path"
+        v-if="posterSrc"
+        :src="posterSrc"
         :alt="label"
         class="rounded-lg w-full ring-1 ring-slate-700/50"
         loading="lazy"
@@ -61,13 +61,16 @@ const props = defineProps({
   mtype: { type: String, default: 'movie' },
 })
 
-const imgBase = 'https://image.tmdb.org/t/p/w500/'
+const { imageUrl, getMovieVideos } = useTmdb()
 
 const label = computed(() => {
   const o = props.object
   if (!o) return ''
   return o.title || o.name || 'Poster'
 })
+
+const profileSrc = computed(() => imageUrl(props.object?.profile_path, 'w500'))
+const posterSrc = computed(() => imageUrl(props.object?.poster_path, 'w500'))
 
 const videos = ref(null)
 
@@ -84,7 +87,6 @@ watch(
     videos.value = null
     if (type !== 'movie' || !id) return
     try {
-      const { getMovieVideos } = useTmdb()
       videos.value = await getMovieVideos(id)
     } catch {
       videos.value = { results: [] }

@@ -6,8 +6,8 @@
       <div class="detail-panel">
         <div class="w-full xl:w-1/3">
           <img
-            v-if="episode.still_path"
-            :src="'https://image.tmdb.org/t/p/w500/' + episode.still_path"
+            v-if="stillSrc"
+            :src="stillSrc"
             :alt="episode.name"
             class="rounded-md w-full bg-slate-900"
             loading="lazy"
@@ -70,6 +70,10 @@
 
 <script>
 export default {
+  setup() {
+    const { getTvEpisode, getTvCredits, backdropStyle, imageUrl } = useTmdb()
+    return { getTvEpisode, getTvCredits, backdropStyle, imageUrl }
+  },
   data() {
     return {
       season: null,
@@ -82,18 +86,22 @@ export default {
       cast: [],
     };
   },
+  computed: {
+    stillSrc() {
+      return this.imageUrl(this.episode?.still_path, 'w500')
+    },
+  },
   async created() {
-    const { getTvEpisode, getTvCredits, backdropStyle } = useTmdb();
     const tvId = this.$route.params.tvid;
     const seasonNum = this.$route.params.seasonnum;
     const episodeNum = this.$route.params.episodenum;
     this.loading = true;
     try {
-      const result = await getTvEpisode(tvId, seasonNum, episodeNum);
+      const result = await this.getTvEpisode(tvId, seasonNum, episodeNum);
       this.episode = result;
-      this.backdropImgPath = backdropStyle(result?.still_path || null);
+      this.backdropImgPath = this.backdropStyle(result?.still_path || null);
       try {
-        const credits = await getTvCredits(tvId);
+        const credits = await this.getTvCredits(tvId);
         this.cast = credits.cast || [];
       } catch {
         this.cast = [];
@@ -103,9 +111,6 @@ export default {
     } finally {
       this.loading = false;
     }
-  },
-
-  methods: {
   },
 };
 </script>

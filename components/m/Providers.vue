@@ -25,7 +25,7 @@
           <div v-for="buy in provider.buy" :key="buy.provider_id">
             <a target="_blank" rel="noopener nofollow" :href="provider.link">
               <img
-                :src="'https://image.tmdb.org/t/p/original/' + buy.logo_path"
+                :src="logoSrc(buy.logo_path)"
                 :alt="buy.provider_name"
                 class="rounded-lg hover:scale-105 transition-all"
               />
@@ -34,7 +34,7 @@
           <div v-for="buy in provider.flatrate" :key="buy.provider_id">
             <a target="_blank" rel="noopener nofollow" :href="provider.link">
               <img
-                :src="'https://image.tmdb.org/t/p/original/' + buy.logo_path"
+                :src="logoSrc(buy.logo_path)"
                 :alt="buy.provider_name"
                 class="rounded-lg hover:scale-105 transition-all"
               />
@@ -50,6 +50,15 @@
 <script>
 export default {
   props: ['providers'],
+  setup() {
+    const { imageUrl } = useTmdb()
+    return { imageUrl }
+  },
+  methods: {
+    logoSrc(path) {
+      return this.imageUrl(path, 'original')
+    },
+  },
   data() {
     return {
       selectedCountry: 'null',

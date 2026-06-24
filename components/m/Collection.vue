@@ -16,6 +16,10 @@
 <script>
 export default {
   props: ['movie'],
+  setup() {
+    const { backdropStyle } = useTmdb()
+    return { backdropStyle }
+  },
   data() {
     return {
       backdropImgPath: {
@@ -23,11 +27,9 @@ export default {
       },
     }
   },
-  async mounted() {
-    this.backdropImgPath.backgroundImage =
-      'url(https://image.tmdb.org/t/p/w1920_and_h800_multi_faces/' +
-      this.movie.belongs_to_collection.backdrop_path +
-      ')'
+  mounted() {
+    const path = this.movie?.belongs_to_collection?.backdrop_path
+    this.backdropImgPath = this.backdropStyle(path)
   },
 }
 </script>

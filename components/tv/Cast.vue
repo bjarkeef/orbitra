@@ -7,13 +7,10 @@
           class="cast-tile"
         >
           <img
-            :src="
-              'https://image.tmdb.org/t/p/w300_and_h300_bestv2/' +
-              member.profile_path
-            "
+            :src="profileSrc(member)"
             :alt="member.original_name"
             class="cast-avatar"
-            v-if="member.profile_path"
+            v-if="profileSrc(member)"
             loading="lazy"
           />
           <img
@@ -50,13 +47,10 @@
             class="cast-tile"
           >
             <img
-              :src="
-                'https://image.tmdb.org/t/p/w300_and_h300_bestv2/' +
-                member.profile_path
-              "
+              :src="profileSrc(member)"
               :alt="member.original_name"
               class="cast-avatar"
-              v-if="member.profile_path"
+              v-if="profileSrc(member)"
               loading="lazy"
             />
             <img
@@ -81,10 +75,19 @@
 <script>
 export default {
   props: ['cast'],
+  setup() {
+    const { imageUrl } = useTmdb()
+    return { imageUrl }
+  },
   data() {
     return {
       seeAllActors: false,
     }
+  },
+  methods: {
+    profileSrc(member) {
+      return this.imageUrl(member?.profile_path, 'w300_and_h300_bestv2')
+    },
   },
 }
 </script>

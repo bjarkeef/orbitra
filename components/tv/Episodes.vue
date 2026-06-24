@@ -17,8 +17,8 @@
       >
         <div class="w-full">
           <img
-            v-if="episode.still_path"
-            :src="'https://image.tmdb.org/t/p/w500/' + episode.still_path"
+            v-if="stillSrc(episode)"
+            :src="stillSrc(episode)"
             :alt="episode.name"
             class="rounded-md w-full aspect-video object-cover bg-slate-900"
             loading="lazy"
@@ -52,6 +52,14 @@
 <script>
 export default {
   props: ['season', 'tv'],
-  setup() {},
+  setup() {
+    const { imageUrl } = useTmdb()
+    return { imageUrl }
+  },
+  methods: {
+    stillSrc(episode) {
+      return this.imageUrl(episode?.still_path, 'w500')
+    },
+  },
 }
 </script>

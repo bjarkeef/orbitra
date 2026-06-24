@@ -7,8 +7,8 @@
       class="relative flex h-full"
     >
       <img
-        v-if="movie.poster_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + movie.poster_path"
+        v-if="posterSrc"
+        :src="posterSrc"
         :alt="movie.title"
         class="h-full w-full object-cover aspect-poster"
         loading="lazy"
@@ -37,8 +37,8 @@
       class="relative flex h-full"
     >
       <img
-        v-if="movie.poster_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + movie.poster_path"
+        v-if="posterSrc"
+        :src="posterSrc"
         :alt="movie.name || movie.title"
         class="h-full w-full object-cover aspect-poster"
         loading="lazy"
@@ -67,8 +67,8 @@
       class="relative block h-full"
     >
       <img
-        v-if="movie.profile_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + movie.profile_path"
+        v-if="profileSrc"
+        :src="profileSrc"
         :alt="movie.name"
         class="h-full w-full object-cover aspect-poster"
         loading="lazy"
@@ -93,8 +93,8 @@
       class="relative block h-full"
     >
       <img
-        v-if="movie.poster_path"
-        :src="'https://image.tmdb.org/t/p/w500/' + movie.poster_path"
+        v-if="posterSrc"
+        :src="posterSrc"
         :alt="movie.title"
         class="h-full w-full object-cover aspect-poster"
         loading="lazy"
@@ -121,12 +121,22 @@
 <script>
 export default {
   props: ['movie', 'mtype'],
+  setup() {
+    const { imageUrl } = useTmdb()
+    return { imageUrl }
+  },
   computed: {
     kind() {
       const t = (this.mtype || this.movie?.media_type || '').toLowerCase()
       if (t === 'tv' || t === 'movie' || t === 'person') return t
       if (this.movie?.media_type) return String(this.movie.media_type).toLowerCase()
       return 'movie'
+    },
+    posterSrc() {
+      return this.imageUrl(this.movie?.poster_path, 'w500')
+    },
+    profileSrc() {
+      return this.imageUrl(this.movie?.profile_path, 'w500')
     },
   },
   created() {
