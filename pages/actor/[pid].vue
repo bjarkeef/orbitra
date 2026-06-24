@@ -2,43 +2,41 @@
   <div>
     <SkeletonDetailPage v-if="pending && !person" />
 
-    <div v-else-if="errorMsg && !person" class="max-w-xl mx-auto py-16 px-6 text-center">
+    <div v-else-if="errorMsg && !person" class="max-w-xl mx-auto py-16 px-4 sm:px-6 text-center">
       <p class="text-xl text-slate-300 mb-2">Could not load this person</p>
       <p class="text-slate-500 text-sm mb-6">{{ errorMsg }}</p>
-      <button type="button" class="underline text-indigo-400 mr-4" @click="refresh()">Retry</button>
-      <NuxtLink to="/" class="underline text-indigo-400">Back home</NuxtLink>
+      <button type="button" class="btn-ghost mr-4" @click="refresh()">Retry</button>
+      <NuxtLink to="/" class="btn-ghost">Back home</NuxtLink>
     </div>
 
-    <div v-else-if="person" class="actor pb-5">
+    <div v-else-if="person" class="actor pb-8">
       <div
-        class="banner bg-cover bg-no-repeat bg-center relative h-56 sm:h-72 md:h-96"
+        class="media-banner"
         :style="backdropImgPath"
       />
-      <div
-        class="details w-11/12 xl:w-2/3 mx-auto p-6 flex flex-col xl:flex-row gap-6 bg-slate-900 bg-opacity-40 mt-5 rounded-lg"
-      >
+      <div class="detail-panel">
         <div class="w-full gap-6 flex xl:block xl:w-1/3">
           <Poster class="w-1/3 xl:w-full" :object="person" mtype="person" />
           <Information mtype="person" class="w-2/3 xl:w-full" :object="person" />
         </div>
-        <div class="w-full xl:w-2/3 overflow-hidden">
+        <div class="w-full xl:w-2/3 overflow-hidden min-w-0">
           <div class="flex gap-6">
-            <div class="bg-slate-800 w-full rounded-lg p-5">
-              <h1 class="text-4xl font-bold mb-2">{{ person.name }}</h1>
-              <hr class="border-slate-900 border-opacity-50 mb-4" />
-              <p class="whitespace-pre-line">{{ person.biography }}</p>
+            <div class="section-card w-full">
+              <h1 class="text-3xl sm:text-4xl font-bold mb-2 text-slate-100">{{ person.name }}</h1>
+              <hr class="card-divider" />
+              <p class="whitespace-pre-line text-slate-300 leading-relaxed">{{ person.biography }}</p>
             </div>
           </div>
 
-          <div class="bg-slate-800 rounded-lg p-5 mt-6">
+          <div class="section-card mt-6">
             <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <h3 class="text-2xl font-bold">
+              <h3 class="text-2xl font-bold text-slate-100">
                 {{ viewMode === 'graph' ? 'Co-star orbit' : 'Filmography' }}
               </h3>
               <div class="flex rounded-lg overflow-hidden border border-slate-600 text-sm">
                 <button
                   type="button"
-                  class="px-3 py-1.5 transition"
+                  class="px-3 py-1.5 transition-colors"
                   :class="viewMode === 'grid' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-700'"
                   @click="viewMode = 'grid'"
                 >
@@ -46,7 +44,7 @@
                 </button>
                 <button
                   type="button"
-                  class="px-3 py-1.5 transition"
+                  class="px-3 py-1.5 transition-colors"
                   :class="viewMode === 'graph' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-700'"
                   @click="viewMode = 'graph'"
                 >
@@ -76,15 +74,15 @@
                 />
                 <div
                   v-else
-                  class="w-16 h-16 rounded-lg bg-slate-800 flex items-center justify-center text-2xl"
+                  class="w-16 h-16 rounded-lg bg-slate-800 flex items-center justify-center text-2xl text-slate-400"
                 >
                   {{ selectedNode.type === 'project' ? 'F' : 'P' }}
                 </div>
-                <div class="flex-1 min-w-[12rem]">
+                <div class="flex-1 min-w-control">
                   <p class="text-xs uppercase tracking-wide text-slate-500 mb-0.5">
                     {{ nodeTypeLabel(selectedNode) }}
                   </p>
-                  <h4 class="text-lg font-bold">{{ selectedNode.label }}</h4>
+                  <h4 class="text-lg font-bold text-slate-100">{{ selectedNode.label }}</h4>
                   <p v-if="selectedNode.year" class="text-sm text-slate-400">
                     {{ selectedNode.year }}
                     <span v-if="selectedNode.character"> · as {{ selectedNode.character }}</span>
@@ -101,14 +99,14 @@
                   <NuxtLink
                     v-if="selectedNode.type === 'project'"
                     :to="projectLink(selectedNode)"
-                    class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm"
+                    class="btn-secondary"
                   >
                     Open {{ selectedNode.mediaType === 'tv' ? 'show' : 'movie' }}
                   </NuxtLink>
                   <NuxtLink
                     v-else-if="selectedNode.type !== 'actor'"
                     :to="'/actor/' + selectedNode.tmdbId"
-                    class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-sm"
+                    class="btn-secondary"
                   >
                     Open person
                   </NuxtLink>
@@ -118,7 +116,7 @@
 
             <div v-else>
               <SkeletonPosterGrid v-if="creditsPending && !credits.length" :count="8" cols="2 md:3 lg:4" />
-              <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div v-else class="poster-grid-sm">
                 <MMovie
                   v-for="movie in credits.slice(0, 20)"
                   :key="movie.id + '-' + (movie.credit_id || movie.character || '')"
@@ -206,14 +204,4 @@ function projectLink(n) {
 }
 </script>
 
-<style scoped>
-.banner:before {
-  content: '';
-  background-color: rgba(0, 0, 0, 0.8);
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-</style>
+

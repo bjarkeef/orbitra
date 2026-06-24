@@ -4,12 +4,12 @@
     prefetch
     class="group block rounded-xl overflow-hidden bg-slate-900 ring-1 ring-slate-800/80 hover:ring-indigo-500/50 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-950/30 cursor-pointer"
   >
-    <div class="relative aspect-[2/3] bg-slate-950 pointer-events-none">
+    <div class="relative aspect-poster bg-slate-950 pointer-events-none">
       <img
         v-if="src"
         :src="src"
         :alt="label"
-        class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        class="h-full w-full object-cover transition duration-500 group-hover:scale-103"
         loading="lazy"
         decoding="async"
         draggable="false"
@@ -18,17 +18,17 @@
         v-else
         src="@/assets/img/noPoster.png"
         alt=""
-        class="h-full w-full object-cover opacity-60"
+        class="h-full w-full object-cover opacity-60 bg-slate-900"
         loading="lazy"
         draggable="false"
       />
       <div class="absolute inset-x-0 bottom-0 p-2.5 pt-10 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <p class="text-xs font-semibold text-white line-clamp-2 leading-snug">{{ label }}</p>
-        <p v-if="meta" class="text-[10px] text-slate-300 mt-0.5">{{ meta }}</p>
+        <p v-if="meta" class="text-2xs text-slate-300 mt-0.5">{{ meta }}</p>
       </div>
       <span
         v-if="score"
-        class="absolute top-2 right-2 text-[10px] font-bold px-1.5 py-0.5 rounded bg-black/70 text-amber-200 backdrop-blur-sm"
+        class="absolute top-2 right-2 poster-score"
       >
         ★ {{ score }}
       </span>
@@ -85,11 +85,4 @@ const meta = computed(() => {
 })
 </script>
 
-<style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-</style>
+

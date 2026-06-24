@@ -1,38 +1,30 @@
 <template>
-  <div class="max-w-screen-2xl m-auto py-6 px-6">
+  <div class="page-shell">
     <div class="flex justify-center flex-col items-center">
-      <h2 class="text-4xl font-black text-center">
+      <h2 class="text-3xl sm:text-4xl font-black text-center text-slate-100">
         Search movies, TV shows, actors and more..
       </h2>
       <input
-        class="bg-slate-900 mt-4 text-white p-2 rounded-lg transition-all text-center w-3/12 min-w-[12rem]"
+        class="input-field mt-4 text-center w-full max-w-md min-w-control"
         type="text"
         v-model="query"
         placeholder="Search..."
       />
-      <div class="d-flex mt-2 gap-2">
+      <div class="flex items-center mt-3 gap-2">
         <input
-          class="bg-slate-900 mb-1 align-middle border-4 d-inline border-slate-900 checked:bg-blue-400 appearance-none text-white p-1 rounded-sm transition-all text-center"
+          class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
           v-model="adult"
           name="adult"
           type="checkbox"
           id="adult"
         />
-        <label class="d-inline-block" for="adult">Enable Adult (18+)</label>
+        <label class="text-sm text-slate-400" for="adult">Enable Adult (18+)</label>
       </div>
     </div>
 
     <div class="results mt-6">
       <div v-if="loading">
-        <div
-          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6"
-        >
-          <div
-            class="bg-slate-700 shadow rounded-md p-4 max-w-sm w-full mx-auto animate-pulse"
-            v-for="num in 6"
-            :key="num"
-          ></div>
-        </div>
+        <SkeletonPosterGrid :count="12" />
       </div>
       <div v-else-if="error" class="text-center text-slate-400 py-6">
         <p>{{ error }}</p>
@@ -40,7 +32,8 @@
       <div v-else-if="movies && movies.length > 0">
         <SearchMovieGrid :movies="visibleMovies" />
         <button
-          class="p-2 rounded-md text-center bg-slate-900 mt-6 mx-auto block"
+          type="button"
+          class="btn-load-more"
           @click="getMore"
         >
           {{ loadingMoreMovies ? 'Fetching more...' : 'See more results' }}
@@ -48,7 +41,7 @@
       </div>
       <div v-else-if="searched && query && query.length > 2">
         <div class="flex justify-center">
-          <p class="text-xl">No results for: {{ query }}</p>
+          <p class="text-lg sm:text-xl text-slate-400">No results for: {{ query }}</p>
         </div>
       </div>
     </div>

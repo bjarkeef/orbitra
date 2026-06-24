@@ -1,9 +1,9 @@
 <template>
   <div v-if="season.episodes" class="seasons mt-3">
-    <h3 class="text-2xl mb-2 font-bold">Episodes</h3>
-    <div class="gap-3 grid grid-cols-2">
-      <nuxt-link
-        class="bg-slate-800 p-4 rounded-md flex flex-col gap-3 flex-shrink-0 max-w-full"
+    <h3 class="text-2xl mb-2 font-bold text-slate-100">Episodes</h3>
+    <div class="gap-3 grid grid-cols-1 sm:grid-cols-2">
+      <NuxtLink
+        class="list-card flex-col"
         v-for="episode in season.episodes"
         :key="episode.id"
         :to="
@@ -20,7 +20,8 @@
             v-if="episode.still_path"
             :src="'https://image.tmdb.org/t/p/w500/' + episode.still_path"
             :alt="episode.name"
-            class="rounded-md w-full aspect-video object-cover"
+            class="rounded-md w-full aspect-video object-cover bg-slate-900"
+            loading="lazy"
           />
           <img
             class="bg-slate-900 w-full rounded-md aspect-video object-cover"
@@ -29,21 +30,21 @@
             alt="No Poster"
           />
         </div>
-        <div>
-          <h3 class="text-xl mb-2 font-bold">
+        <div class="min-w-0">
+          <h3 class="text-lg sm:text-xl mb-2 font-bold text-slate-100">
             {{ episode.episode_number }}. {{ episode.name }}
           </h3>
-          <p class="text-sm mb-2">
-            {{ episode.overview.replace(/(.{80})..+/, '$1&hellip;') }}
+          <p class="text-sm mb-2 text-slate-400 line-clamp-3">
+            {{ episode.overview }}
           </p>
-          <p class="text-sm">Air date: {{ episode.air_date ? episode.air_date : '---' }}</p>
-          <p class="text-sm">
+          <p class="text-sm text-slate-400">Air date: {{ episode.air_date ? episode.air_date : '---' }}</p>
+          <p class="text-sm text-slate-400">
             Rating:
             {{ episode.vote_average ? episode.vote_average.toFixed(1) : '---' }}
           </p>
-          <p class="text-sm">Runtime: {{ episode.runtime }} min</p>
+          <p class="text-sm text-slate-400">Runtime: {{ episode.runtime }} min</p>
         </div>
-      </nuxt-link>
+      </NuxtLink>
     </div>
   </div>
 </template>

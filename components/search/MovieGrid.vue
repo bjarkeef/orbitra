@@ -24,14 +24,7 @@ export default {
   },
   computed: {
     gridClasses() {
-      return [
-        'grid',
-        'gap-6',
-        {
-          'grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6':
-            !this.loading,
-        },
-      ]
+      return this.loading ? 'grid gap-4 sm:gap-6' : 'poster-grid'
     },
   },
 }

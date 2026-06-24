@@ -1,15 +1,15 @@
 <template>
   <div>
-    <div v-if="object" class="bg-slate-800 h-full mt-0 xl:mt-6 relative rounded-lg p-5">
+    <div v-if="object" class="section-card h-full mt-0 xl:mt-6 relative">
       <div class="flex justify-between items-center mb-3">
-        <h3 class="text-2xl font-bold">Information</h3>
+        <h3 class="text-2xl font-bold text-slate-100">Information</h3>
         <div
           v-if="object.vote_average"
-          class="text-center h-full gap-2 flex justify-center items-end py-2 px-3 bg-slate-900 rounded-md">
-          <span class="text-lg">{{
+          class="text-center gap-2 flex justify-center items-end py-2 px-3 bg-slate-900 rounded-md">
+          <span class="text-lg text-slate-100">{{
             object.vote_average ? object.vote_average.toFixed(1) : "---"
           }}</span>
-          <span class="text-xs text-gray-500">/ 10 </span>
+          <span class="text-xs text-slate-500">/ 10 </span>
         </div>
       </div>
       <p v-if="object.known_for_department">

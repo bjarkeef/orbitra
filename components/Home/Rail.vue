@@ -15,13 +15,13 @@
       <div
         v-for="n in 6"
         :key="n"
-        class="shrink-0 w-36 sm:w-44 aspect-[2/3] rounded-xl bg-slate-800/80 animate-pulse ring-1 ring-slate-700/50"
+        class="shrink-0 w-36 sm:w-44 aspect-poster rounded-xl bg-slate-800/80 animate-pulse ring-1 ring-slate-700/50"
       />
     </div>
 
     <div v-else-if="error" class="rounded-xl border border-slate-700/60 bg-slate-900/50 px-4 py-8 text-center">
       <p class="text-slate-400 text-sm">{{ error }}</p>
-      <button type="button" class="mt-3 text-indigo-300 text-sm underline" @click="$emit('retry')">Retry</button>
+      <button type="button" class="mt-3 btn-ghost" @click="$emit('retry')">Retry</button>
     </div>
 
     <!--
@@ -32,8 +32,7 @@
     <div
       v-else
       ref="scroller"
-      class="rail-scroller flex gap-4 overflow-x-auto pb-2 -mx-1 px-1"
-      style="scrollbar-color: rgb(51 65 85) transparent"
+      class="rail-scroller"
     >
       <HomePosterCard
         v-for="item in items"
@@ -66,37 +65,3 @@ function scrollByDir(dir) {
   el.scrollBy({ left: amount, behavior: 'smooth' })
 }
 </script>
-
-<style scoped>
-.rail-scroller {
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-  /* Horizontal swipe on touch devices; links stay fully interactive */
-  touch-action: pan-x;
-}
-.rail-scroller::-webkit-scrollbar {
-  height: 6px;
-}
-.rail-scroller::-webkit-scrollbar-thumb {
-  background: rgb(51 65 85);
-  border-radius: 999px;
-}
-.rail-nav-btn {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 9999px;
-  border: 1px solid rgb(51 65 85);
-  background: rgb(15 23 42 / 0.8);
-  color: rgb(226 232 240);
-  font-size: 1.25rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, border-color 0.15s;
-}
-.rail-nav-btn:hover {
-  background: rgb(30 41 59);
-  border-color: rgb(99 102 241 / 0.5);
-}
-</style>

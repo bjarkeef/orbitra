@@ -1,15 +1,15 @@
 <template>
   <div class="xl:mt-6">
-    <nuxt-link
+    <NuxtLink
       :to="'/collection/' + movie.belongs_to_collection.id"
       :style="backdropImgPath"
-      class="rounded-lg p-5 flex h-full relative bg-cover bg-no-repeat bg-center overflow-hidden"
+      class="rounded-lg p-5 flex min-h-20 relative bg-cover bg-no-repeat bg-center overflow-hidden ring-1 ring-slate-700/50"
     >
-      <div class="absolute w-full h-full backdrop-blur-sm hover:backdrop-blur-0 transition-all duration-500 backdrop-brightness-50 top-0 left-0"></div>
-      <h2 class="text-xl pointer-events-none font-semibold z-10">
+      <div class="absolute inset-0 backdrop-blur-sm hover:backdrop-blur-0 transition-all duration-500 bg-black/50" />
+      <h2 class="text-lg sm:text-xl pointer-events-none font-semibold z-10 text-slate-100">
         Part of the {{ movie.belongs_to_collection.name }}
       </h2>
-    </nuxt-link>
+    </NuxtLink>
   </div>
 </template>
 

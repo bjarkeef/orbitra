@@ -1,24 +1,21 @@
 <template>
-  <div>
-    <section class="h-96 bg-slate-900 bg-opacity-60 overflow-hidden">
-      <div class="pt-1 pl-1 opacity-20" v-if="loading">Loading</div>
-      <div
-        v-else-if="error"
-        class="h-full flex items-center justify-center text-slate-400 text-sm px-4 text-center">
-        {{ error }}
-      </div>
-      <div
-        class="h-full hero relative bg-cover bg-no-repeat bg-center"
-        :style="backdropImgPath"
-        v-else-if="movies && movies.length">
-        <nuxt-link
-          class="absolute top-1 left-1 opacity-60 hover:opacity-100 transition-all"
-          :to="'/m/' + movies[number].id"
-          >{{ movies[number].title }}</nuxt-link
-        >
-      </div>
-    </section>
-  </div>
+  <section class="media-banner bg-slate-900/60 overflow-hidden">
+    <div class="pt-1 pl-1 opacity-20 relative z-[1]" v-if="loading">Loading</div>
+    <div
+      v-else-if="error"
+      class="absolute inset-0 flex items-center justify-center text-slate-400 text-sm px-4 text-center z-[1]">
+      {{ error }}
+    </div>
+    <div
+      class="absolute inset-0 bg-cover bg-no-repeat bg-center"
+      :style="backdropImgPath"
+      v-else-if="movies && movies.length">
+      <NuxtLink
+        class="absolute top-3 left-3 z-[1] text-sm text-slate-200/60 hover:text-white transition-colors"
+        :to="'/m/' + movies[number].id"
+      >{{ movies[number].title }}</NuxtLink>
+    </div>
+  </section>
 </template>
 
 <script>
@@ -55,15 +52,3 @@ export default {
   },
 }
 </script>
-
-<style scoped>
-.hero:before {
-  content: '';
-  background-color: rgba(0, 0, 0, 0.8);
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-</style>

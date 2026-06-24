@@ -1,12 +1,12 @@
 <template>
   <div>
-    <div class="bg-slate-800 rounded-lg p-5 scrollbar mt-6 overflow-x-scroll">
-      <h3 class="mb-4 text-xl font-bold">Cast</h3>
+    <div class="section-card scrollbar mt-6 overflow-x-auto">
+      <h3 class="mb-4 text-xl font-bold text-slate-100">Cast</h3>
       <div class="flex gap-3 min-w-fit">
         <div v-for="member in sortByPopularity(cast.slice(0, 12))" :key="member.id" class="w-36">
-          <nuxt-link
+          <NuxtLink
             :to="'/actor/' + member.id"
-            class="flex flex-col gap-4 hover:bg-slate-700 bg-opacity-10 p-2 rounded-lg transition-all"
+            class="cast-tile"
           >
             <img
               :src="
@@ -14,26 +14,28 @@
                 member.profile_path
               "
               :alt="member.original_name"
-              class="w-32 h-32 rounded-md"
+              class="cast-avatar"
               v-if="member.profile_path"
+              loading="lazy"
             />
             <img
-              class="bg-slate-900 w-32 h-32 object-cover rounded-md"
+              class="cast-avatar"
               v-else
               src="@/assets/img/noActor.png"
               alt="No Profile Image"
             />
-            <div>
+            <div class="text-sm text-slate-200">
               {{ member.original_name }}
-              <span v-if="member.character"
+              <span v-if="member.character" class="text-slate-400"
                 ><br />
                 as {{ member.character }}</span
               >
             </div>
-          </nuxt-link>
+          </NuxtLink>
         </div>
         <button
-          class="bg-slate-900 w-36 rounded-lg px-2 py-6 mr-4 my-auto transition-all hover:bg-opacity-75"
+          type="button"
+          class="bg-slate-900/90 hover:bg-slate-900 w-36 rounded-lg px-2 py-6 mr-4 my-auto transition-colors text-slate-300 text-sm"
           v-if="!seeAllActors && cast.length > 12"
           @click="seeAllActors = true"
         >
@@ -45,9 +47,9 @@
             :key="member.id"
             class="w-36"
           >
-            <nuxt-link
+            <NuxtLink
               :to="'/actor/' + member.id"
-              class="flex flex-col gap-4 hover:bg-slate-700 bg-opacity-10 p-2 rounded-lg transition-all"
+              class="cast-tile"
             >
               <img
                 :src="
@@ -55,23 +57,24 @@
                   member.profile_path
                 "
                 :alt="member.original_name"
-                class="w-32 h-32 rounded-md"
+                class="cast-avatar"
                 v-if="member.profile_path"
+                loading="lazy"
               />
               <img
-                class="bg-slate-900 w-32 h-32 object-cover rounded-md"
+                class="cast-avatar"
                 v-else
                 src="@/assets/img/noActor.png"
                 alt="No Profile Image"
               />
-              <div>
+              <div class="text-sm text-slate-200">
                 {{ member.original_name }}
-                <span v-if="member.character"
+                <span v-if="member.character" class="text-slate-400"
                   ><br />
                   as {{ member.character }}</span
                 >
               </div>
-            </nuxt-link>
+            </NuxtLink>
           </div>
         </div>
       </div>

@@ -1,21 +1,15 @@
 <template>
-  <div class="max-w-screen-2xl m-auto py-6 px-6">
-    <h2 class="text-4xl font-black mb-5 text-center w-full">
+  <div class="page-shell">
+    <h2 class="text-3xl sm:text-4xl font-black mb-5 text-center w-full text-slate-100">
       See whats trending this week
     </h2>
     <div v-if="loading">
-      <div
-        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
-        <div
-          class="bg-slate-700 shadow rounded-md p-4 max-w-sm w-full mx-auto animate-pulse"
-          v-for="num in 6"
-          :key="num"></div>
-      </div>
+      <SkeletonPosterGrid :count="6" />
     </div>
     <div v-else-if="error" class="text-center text-slate-400 py-8">
       <p>{{ error }}</p>
       <button
-        class="mt-4 px-3 py-1.5 rounded-md bg-slate-900"
+        class="mt-4 btn-secondary"
         type="button"
         @click="loadInitial">
         Retry
@@ -24,7 +18,7 @@
     <div v-else>
       <div
         v-if="currentMoviePage < 3 && movies"
-        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+        class="poster-grid">
         <MMovie
           :movie="movie"
           :loading="loading"
@@ -34,7 +28,7 @@
       </div>
       <div
         v-else
-        class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+        class="poster-grid">
         <MMovie
           :movie="movie"
           :loading="loading"
@@ -45,7 +39,8 @@
     </div>
     <button
       v-if="!error"
-      class="p-2 rounded-md text-center bg-slate-900 mt-6 mx-auto block"
+      type="button"
+      class="btn-load-more"
       @click="getMoreMovies(currentMoviePage)">
       {{ loadingMoreMovies ? 'Fetching more...' : 'Load more' }}
     </button>

@@ -14,8 +14,8 @@
       <div class="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/40 to-transparent" />
     </div>
 
-    <div class="relative max-w-screen-2xl mx-auto px-4 sm:px-6 min-h-[22rem] sm:min-h-[28rem] flex flex-col justify-end pb-10 pt-20">
-      <p class="text-xs uppercase tracking-[0.2em] text-indigo-300/90 mb-3">Now featuring</p>
+    <div class="relative max-w-screen-2xl mx-auto px-4 sm:px-6 min-h-hero sm:min-h-hero-sm flex flex-col justify-end pb-10 pt-20">
+      <p class="text-xs uppercase tracking-hero text-indigo-300/90 mb-3">Now featuring</p>
 
       <div v-if="loading" class="space-y-3 max-w-xl animate-pulse">
         <div class="h-10 bg-slate-800/80 rounded w-2/3" />
@@ -26,11 +26,11 @@
 
       <div v-else-if="error" class="max-w-lg">
         <p class="text-slate-300">Could not load featured titles.</p>
-        <button type="button" class="mt-3 text-sm text-indigo-300 underline" @click="refresh()">Try again</button>
+        <button type="button" class="mt-3 btn-ghost" @click="refresh()">Try again</button>
       </div>
 
       <template v-else>
-        <div class="max-w-2xl min-h-[11rem] sm:min-h-[13rem]">
+        <div class="max-w-2xl min-h-hero-copy sm:min-h-hero-copy-sm">
           <!-- Only title / copy / CTA rotate — pagination stays mounted -->
           <Transition name="hero-fade" mode="out-in">
             <div v-if="current" :key="'copy-' + current.id">
@@ -46,7 +46,7 @@
               <div class="mt-6 flex flex-wrap items-center gap-3">
                 <NuxtLink
                   :to="linkOf(current)"
-                  class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-semibold transition-colors shadow-lg shadow-indigo-950/40"
+                  class="btn-primary"
                 >
                   View details
                 </NuxtLink>
@@ -150,11 +150,5 @@ onBeforeUnmount(() => {
 .hero-fade-enter-from,
 .hero-fade-leave-to {
   opacity: 0;
-}
-.line-clamp-3 {
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 </style>

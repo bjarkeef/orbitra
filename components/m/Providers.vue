@@ -1,7 +1,7 @@
 <template>
   <div v-if="providers.results">
     <select
-      class="bg-slate-900 max-w-full rounded-md p-2"
+      class="select-field"
       v-model="selectedCountry"
       placeholder="Please select country"
       name="providers"

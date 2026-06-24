@@ -6,12 +6,12 @@
         v-if="object.profile_path"
         :src="imgBase + object.profile_path"
         :alt="label"
-        class="rounded-md w-full"
+        class="rounded-lg w-full ring-1 ring-slate-700/50"
         loading="lazy"
       />
       <img
         v-else
-        class="bg-slate-900 rounded-md w-full"
+        class="bg-slate-900 rounded-lg w-full ring-1 ring-slate-700/50"
         src="@/assets/img/noPoster.png"
         alt="No photo"
       />
@@ -23,32 +23,33 @@
         v-if="object.poster_path"
         :src="imgBase + object.poster_path"
         :alt="label"
-        class="rounded-md w-full"
+        class="rounded-lg w-full ring-1 ring-slate-700/50"
         loading="lazy"
       />
       <img
         v-else
-        class="bg-slate-900 rounded-md w-full"
+        class="bg-slate-900 rounded-lg w-full ring-1 ring-slate-700/50"
         src="@/assets/img/noPoster.png"
         alt="No poster"
       />
 
       <div
         v-if="mtype === 'movie' && trailerKey"
-        class="absolute top-3 left-3 bg-slate-700/90 py-1 px-2 rounded-md text-sm"
+        class="absolute top-3 left-3 bg-slate-900/90 py-1 px-2 rounded-md text-sm text-slate-200 ring-1 ring-slate-600/60"
       >
         <a
           :href="'https://youtube.com/watch?v=' + trailerKey"
           target="_blank"
           rel="noopener noreferrer"
+          class="hover:text-white transition-colors"
         >Watch Trailer</a>
       </div>
 
       <div
         v-if="object.adult"
-        class="absolute top-3 right-3 bg-slate-700/90 py-1 px-2 rounded-md text-sm"
+        class="absolute top-3 right-3 bg-slate-900/90 py-1 px-2 rounded-md text-sm ring-1 ring-slate-600/60"
       >
-        <span class="text-xl leading-none">18+</span>
+        <span class="text-lg leading-none text-amber-200">18+</span>
       </div>
     </div>
   </div>

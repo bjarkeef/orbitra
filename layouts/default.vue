@@ -1,8 +1,8 @@
 <template>
-  <div class="orbitra-shell min-h-screen flex flex-col bg-slate-800">
+  <div class="orbitra-shell min-h-screen flex flex-col bg-slate-900">
     <!-- Thin route progress — shows while client navigates / payloads load -->
     <div
-      class="pointer-events-none fixed inset-x-0 top-0 z-[60] h-0.5 overflow-hidden"
+      class="pointer-events-none fixed inset-x-0 top-0 z-progress h-0.5 overflow-hidden"
       aria-hidden="true"
     >
       <div
