@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+    font-family: 'Nunito', system-ui, sans-serif;
+  }
+
+  body {
+    @apply m-0 min-h-screen bg-slate-900 text-slate-200;
+  }
+
+  /* Avoid horizontal overflow from wide rails / absolute banners */
+  #__nuxt {
+    @apply min-h-screen overflow-x-hidden;
+  }
+}
+
+@layer components {
+  .scrollbar {
+    scrollbar-color: rgb(51, 65, 85) rgb(15, 23, 42);
+  }
+
+  .scrollbar::-webkit-scrollbar {
+    width: 15px;
+    height: 10px;
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    background: rgb(15, 23, 42);
+    border-radius: 0.5rem;
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(51, 65, 85);
+    border-radius: 0.5rem;
+  }
+
+  /* Actor orbit canvas chrome (shared with ActorGraph scoped fallbacks) */
+  .ctrl-btn {
+    @apply flex h-9 w-9 items-center justify-center rounded-lg border border-slate-600
+      bg-slate-900/90 text-slate-200 shadow-sm transition
+      hover:border-indigo-400 hover:bg-slate-800 hover:text-white;
+  }
+}
+
+/* Page transitions (Nuxt 3+ uses *-enter-from) */
+.home-enter-active,
+.home-leave-active {
+  transition: opacity 0.35s ease;
+}
+
+.home-enter-from,
+.home-leave-to {
+  opacity: 0;
+}
+
+
+/* Fast page swap — keep perceived latency low; skeletons handle wait state */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.12s ease;
+}
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}
