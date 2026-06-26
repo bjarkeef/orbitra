@@ -34,6 +34,21 @@
         <span v-if="!hasExplicitRegion"> (inferred until you pick one)</span>
       </p>
     </section>
+
+    <section class="section-card mt-8" aria-labelledby="ratings-settings-heading">
+      <h2 id="ratings-settings-heading" class="text-lg font-bold text-slate-100">
+        Collection ratings
+      </h2>
+      <p class="mt-2 text-sm text-slate-400 leading-relaxed">
+        Your 1–10 scores on movies are stored in this browser (cookie
+        <code class="text-slate-300">orbitra_movie_ratings</code>)
+        and power collection progress (“you have seen 3 of 5”). Rate titles on
+        movie or collection pages.
+      </p>
+      <p class="mt-3 text-sm">
+        <NuxtLink to="/collections" class="btn-ghost">Browse collections →</NuxtLink>
+      </p>
+    </section>
   </div>
 </template>
 

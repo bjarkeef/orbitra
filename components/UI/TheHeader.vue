@@ -38,6 +38,13 @@
           Discover
         </NuxtLink>
         <NuxtLink
+          to="/collections"
+          class="text-slate-300 hover:text-white transition-colors"
+          active-class="text-white font-semibold"
+        >
+          Collections
+        </NuxtLink>
+        <NuxtLink
           to="/search"
           class="text-slate-300 hover:text-white transition-colors"
           active-class="text-white font-semibold"
