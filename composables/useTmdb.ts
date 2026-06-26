@@ -231,6 +231,15 @@ export interface TmdbExternalIds {
   id?: number
 }
 
+/** One movie in a TMDB collection (franchise part). */
+export interface TmdbCollectionPart extends TmdbMediaItem {
+  title?: string
+  release_date?: string
+  genre_ids?: number[]
+  /** Watch / release order index (0-based) after {@link sortCollectionParts}. */
+  watch_order?: number
+}
+
 /** Collection detail with parts. */
 export interface TmdbCollection {
   id: number
@@ -238,7 +247,21 @@ export interface TmdbCollection {
   overview?: string
   poster_path?: string | null
   backdrop_path?: string | null
-  parts?: TmdbMediaItem[]
+  parts?: TmdbCollectionPart[]
+}
+
+/** Row from GET /api/collections browse. */
+export interface OrbitraCollectionBrowseItem {
+  id: number
+  name: string
+  overview?: string
+  poster_path?: string | null
+  backdrop_path?: string | null
+  part_count: number
+  part_ids: number[]
+  genre_ids: number[]
+  first_release_date?: string | null
+  last_release_date?: string | null
 }
 
 /** CSS background style for hero / detail banners. */
@@ -758,9 +781,71 @@ export function useTmdb() {
     return tmdb<TmdbCombinedCredits>(`person/${requireId(id)}/combined_credits`)
   }
 
-  /** Movie collection (franchise) detail. */
+  /** Movie collection (franchise) detail — parts are TMDB membership; order by release_date. */
   function getCollection(id: string | number): Promise<TmdbCollection> {
     return tmdb<TmdbCollection>(`collection/${requireId(id)}`)
+  }
+
+  /**
+   * Sort collection parts into watch / release order (release_date asc, then id).
+   * Unreleased or undated titles sort last.
+   */
+  function sortCollectionParts(parts: TmdbCollectionPart[] | undefined | null): TmdbCollectionPart[] {
+    const list = (parts || []).slice()
+    list.sort((a, b) => {
+      const da = a.release_date || '9999-99-99'
+      const db = b.release_date || '9999-99-99'
+      if (da !== db) return da < db ? -1 : 1
+      return (a.id || 0) - (b.id || 0)
+    })
+    return list.map((p, i) => ({ ...p, watch_order: i + 1 }))
+  }
+
+  /** Search TMDB collections by name. */
+  function searchCollections(
+    query: string,
+    page = 1,
+  ): Promise<TmdbPagedResult<TmdbCollection>> {
+    const q = String(query || '').trim()
+    if (!q) throw new Error('Search query is required')
+    return tmdb<TmdbPagedResult<TmdbCollection>>('search/collection', {
+      query: q,
+      page,
+    })
+  }
+
+  /**
+   * Orbitra curated collection browse (server builds part_ids + genres from TMDB).
+   */
+  async function browseCollections(opts: {
+    genre?: number | null
+    q?: string
+    minParts?: number
+    maxParts?: number
+  } = {}): Promise<{
+    results: OrbitraCollectionBrowseItem[]
+    total: number
+    catalog_size?: number
+  }> {
+    const query: Record<string, string | number> = {}
+    if (opts.genre != null && opts.genre > 0) query.genre = opts.genre
+    if (opts.q) query.q = opts.q
+    if (opts.minParts != null) query.minParts = opts.minParts
+    if (opts.maxParts != null) query.maxParts = opts.maxParts
+    return $fetch('/api/collections', { query })
+  }
+
+  /**
+   * Resolve membership: prefer movie.belongs_to_collection.id, else null.
+   * Full part list always comes from getCollection(collectionId).
+   */
+  function collectionIdFromMovie(
+    movie: { belongs_to_collection?: { id?: number } | null } | null | undefined,
+  ): number | null {
+    const id = movie?.belongs_to_collection?.id
+    if (id == null) return null
+    const n = Number(id)
+    return Number.isFinite(n) && n > 0 ? n : null
   }
 
   /**
@@ -907,6 +992,10 @@ export function useTmdb() {
     getPerson,
     getPersonCombinedCredits,
     getCollection,
+    sortCollectionParts,
+    searchCollections,
+    browseCollections,
+    collectionIdFromMovie,
     searchMulti,
     getTopRatedMovies,
     getTopRatedTv,
