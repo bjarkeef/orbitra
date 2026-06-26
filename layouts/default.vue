@@ -17,6 +17,7 @@
       <slot />
     </div>
     <UITheFooter />
+    <AdultAgeGateModal />
   </div>
 </template>
 
