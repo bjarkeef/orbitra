@@ -32,6 +32,13 @@
       >
         ★ {{ score }}
       </span>
+      <span
+        v-if="showAdultBadge"
+        class="absolute top-2 left-2 rounded px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wide bg-rose-950/85 text-rose-200 ring-1 ring-rose-500/40"
+        title="Adult content"
+      >
+        18+
+      </span>
     </div>
   </NuxtLink>
 </template>
@@ -43,11 +50,11 @@ const props = defineProps({
 })
 
 const { imageUrl } = useTmdb()
+const { isAdultEnabled } = useAdultContent()
 
 const kind = computed(() => {
   const t = (props.mediaType || props.item?.media_type || '').toLowerCase()
   if (t === 'tv' || t === 'movie' || t === 'person') return t
-  // Trending "all" mixes types; prefer explicit fields over guessing movie
   if (props.item?.media_type) return String(props.item.media_type).toLowerCase()
   if (props.item?.first_air_date && !props.item?.release_date) return 'tv'
   if (props.item?.name && !props.item?.title) return 'tv'
@@ -83,6 +90,9 @@ const meta = computed(() => {
   const d = props.item.release_date || props.item.first_air_date || ''
   return d.slice(0, 4)
 })
+
+/** Subtle 18+ badge only when feature is on and TMDB marked the title adult. */
+const showAdultBadge = computed(
+  () => isAdultEnabled.value && Boolean(props.item?.adult),
+)
 </script>
-
-

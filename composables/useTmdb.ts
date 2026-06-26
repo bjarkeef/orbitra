@@ -406,9 +406,23 @@ export function useTmdb() {
     query: TmdbQuery = {},
   ): Promise<T> {
     const safePath = normalizeTmdbPath(path)
-    // Strip client attempts to pass a key; server owns TMDB_API
-    const { api_key: _ignored, ...safeQuery } = query as TmdbQuery & { api_key?: unknown }
-    void _ignored
+    // Strip client attempts to pass a key or include_adult; server owns TMDB_API + adult gate
+    const {
+      api_key: _ignoredKey,
+      include_adult: _ignoredAdult,
+      ...restQuery
+    } = query as TmdbQuery & { api_key?: unknown; include_adult?: unknown }
+    void _ignoredKey
+    void _ignoredAdult
+
+    const { isAdultEnabled, filterAdultPaged, filterAdultResults, ADULT_INCLUDE_HEADER } =
+      useAdultContent()
+
+    // Segment client cache by adult preference so toggling does not serve stale lists
+    const safeQuery: TmdbQuery = {
+      ...restQuery,
+      _orbitra_adult: isAdultEnabled.value ? '1' : '0',
+    }
 
     const key = clientCacheKey(safePath, safeQuery)
     const cached = readClientCache<T>(key)
@@ -421,17 +435,36 @@ export function useTmdb() {
       return pendingExisting
     }
 
+    // Query sent to proxy never includes include_adult or our internal cache segment key
+    const { _orbitra_adult: _seg, ...proxyQuery } = safeQuery
+    void _seg
+
+    const headers: Record<string, string> = {}
+    if (isAdultEnabled.value) {
+      headers[ADULT_INCLUDE_HEADER] = '1'
+    }
+
     const generationAtStart = clientCacheGeneration
     const pending = (async (): Promise<T> => {
       try {
-        const body = await $fetch<T>(pathUrl(safePath), { query: safeQuery })
-        // Skip write if cache was cleared while this request was in flight
+        let body = await $fetch<T>(pathUrl(safePath), {
+          query: proxyQuery,
+          headers,
+        })
+        // When adult is off, strip adult-flagged rows before they hit UI / client cache
+        if (!isAdultEnabled.value && body && typeof body === 'object') {
+          const b = body as { results?: Array<{ adult?: boolean }> }
+          if (Array.isArray(b.results)) {
+            body = filterAdultPaged(b as { results?: Array<{ adult?: boolean }> }) as T
+          } else if (Array.isArray(body)) {
+            body = filterAdultResults(body as Array<{ adult?: boolean }>) as T
+          }
+        }
         if (generationAtStart === clientCacheGeneration) {
           writeClientCache(key, body, CLIENT_GET_TTL_MS)
         }
         return body
       } catch (err: unknown) {
-        // Preserve proxy / H3 errors; wrap unknown failures for UI consumption
         if (err && typeof err === 'object' && ('statusCode' in err || 'statusMessage' in err)) {
           throw err
         }
@@ -625,10 +658,11 @@ export function useTmdb() {
     if (!q) {
       throw new Error('Search query is required')
     }
+    // include_adult is controlled by X-Orbitra-Include-Adult via useAdultContent — not query
+    void opts.include_adult
     return tmdb<TmdbPagedResult<TmdbMediaItem>>('search/multi', {
       query: q,
       page: opts.page ?? 1,
-      include_adult: opts.include_adult ?? false,
     })
   }
 
@@ -673,6 +707,41 @@ export function useTmdb() {
     })
   }
 
+  /**
+   * Discover titles for the adult explore page (requires adult preference + age gate).
+   * Genre / sort / vote filters are passed through; include_adult is header-only.
+   */
+  function discoverAdultMedia(
+    media: 'movie' | 'tv',
+    opts: {
+      page?: number
+      sort_by?: string
+      'vote_average.gte'?: number
+      'vote_count.gte'?: number
+      with_genres?: string
+      without_genres?: string
+      primary_release_year?: number
+      first_air_date_year?: number
+    } = {},
+  ): Promise<TmdbPagedResult<TmdbMediaItem>> {
+    const page = opts.page ?? 1
+    const sort_by = opts.sort_by ?? 'popularity.desc'
+    const query: TmdbQuery = {
+      page,
+      sort_by,
+      'vote_count.gte': opts['vote_count.gte'] ?? 20,
+    }
+    if (opts['vote_average.gte'] != null) query['vote_average.gte'] = opts['vote_average.gte']
+    if (opts.with_genres) query.with_genres = opts.with_genres
+    if (opts.without_genres) query.without_genres = opts.without_genres
+    if (media === 'movie' && opts.primary_release_year != null) {
+      query.primary_release_year = opts.primary_release_year
+    }
+    if (media === 'tv' && opts.first_air_date_year != null) {
+      query.first_air_date_year = opts.first_air_date_year
+    }
+    return tmdb<TmdbPagedResult<TmdbMediaItem>>(`discover/${media}`, query)
+  }
   /** External ids for a TV show (IMDB link on Information panel). */
   function getTvExternalIds(id: string | number): Promise<TmdbExternalIds> {
     return tmdb<TmdbExternalIds>(`tv/${requireId(id)}/external_ids`)
@@ -720,6 +789,7 @@ export function useTmdb() {
     getPopularMovies,
     discoverMovies,
     discoverTv,
+    discoverAdultMedia,
     getTvExternalIds,
     getCreditsForTitle,
     /** Same as {@link clearTmdbClientCache} — exposed on the composable for convenience. */

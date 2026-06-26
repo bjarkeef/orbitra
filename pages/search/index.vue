@@ -10,16 +10,13 @@
         v-model="query"
         placeholder="Search..."
       />
-      <div class="flex items-center mt-3 gap-2">
-        <input
-          class="h-4 w-4 rounded border-slate-600 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
-          v-model="adult"
-          name="adult"
-          type="checkbox"
-          id="adult"
-        />
-        <label class="text-sm text-slate-400" for="adult">Enable Adult (18+)</label>
-      </div>
+      <p class="mt-3 text-sm text-slate-500 text-center max-w-md">
+        Adult results follow your
+        <NuxtLink to="/settings" class="text-indigo-300 underline hover:text-indigo-200">Settings</NuxtLink>
+        preference
+        <span v-if="isAdultEnabled" class="text-rose-300">(18+ on)</span>
+        <span v-else>(filtered out)</span>.
+      </p>
     </div>
 
     <div class="results mt-6">
@@ -48,95 +45,81 @@
   </div>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      movies: null,
-      loading: false,
-      error: null,
-      searched: false,
-      query: '',
-      adult: false,
-      currentMoviePage: 2,
-      loadingMoreMovies: false,
-      _debounceTimer: null,
-    }
-  },
-  computed: {
-    visibleMovies() {
-      if (!this.movies) return []
-      return this.currentMoviePage < 3 ? this.movies.slice(0, 18) : this.movies
-    },
-  },
-  watch: {
-    query() {
-      this.scheduleSearch()
-    },
-    adult() {
-      if (this.query && this.query.length > 2) this.scheduleSearch()
-    },
-  },
-  beforeUnmount() {
-    if (this._debounceTimer) clearTimeout(this._debounceTimer)
-  },
-  // Nuxt 2 compat if needed
-  beforeDestroy() {
-    if (this._debounceTimer) clearTimeout(this._debounceTimer)
-  },
-  methods: {
-    scheduleSearch() {
-      if (this._debounceTimer) clearTimeout(this._debounceTimer)
-      const q = (this.query || '').trim()
-      if (q.length <= 2) {
-        this.movies = null
-        this.searched = false
-        this.error = null
-        this.loading = false
-        this.currentMoviePage = 2
-        return
-      }
-      this._debounceTimer = setTimeout(() => this.search(), 300)
-    },
-    async search() {
-      const { searchMulti } = useTmdb()
-      const q = (this.query || '').trim()
-      if (q.length <= 2) return
+<script setup>
+const { isAdultEnabled } = useAdultContent()
 
-      this.loading = true
-      this.error = null
-      this.searched = true
-      this.currentMoviePage = 2
-      try {
-        const results = await searchMulti(q, { include_adult: this.adult })
-        const list = results.results || []
-        this.movies = list.slice().sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))
-      } catch (e) {
-        this.error = e?.statusMessage || e?.message || 'Search failed.'
-        this.movies = []
-      } finally {
-        this.loading = false
-      }
-    },
-    async getMore() {
-      const { searchMulti } = useTmdb()
-      const q = (this.query || '').trim()
-      if (!q) return
-      this.loadingMoreMovies = true
-      try {
-        const page = this.currentMoviePage
-        const data = await searchMulti(q, {
-          page,
-          include_adult: this.adult,
-        })
-        this.currentMoviePage++
-        this.movies.push(...(data.results || []))
-      } catch (e) {
-        /* ignore pagination errors */
-      } finally {
-        this.loadingMoreMovies = false
-      }
-    },
-  },
+const movies = ref(null)
+const loading = ref(false)
+const error = ref(null)
+const searched = ref(false)
+const query = ref('')
+const currentMoviePage = ref(2)
+const loadingMoreMovies = ref(false)
+let _debounceTimer = null
+
+const visibleMovies = computed(() => {
+  if (!movies.value) return []
+  return currentMoviePage.value < 3 ? movies.value.slice(0, 18) : movies.value
+})
+
+function scheduleSearch() {
+  if (_debounceTimer) clearTimeout(_debounceTimer)
+  const q = (query.value || '').trim()
+  if (q.length <= 2) {
+    movies.value = null
+    searched.value = false
+    error.value = null
+    loading.value = false
+    currentMoviePage.value = 2
+    return
+  }
+  _debounceTimer = setTimeout(() => search(), 300)
+}
+
+watch(query, () => scheduleSearch())
+watch(isAdultEnabled, () => {
+  if (query.value && query.value.length > 2) scheduleSearch()
+})
+
+onBeforeUnmount(() => {
+  if (_debounceTimer) clearTimeout(_debounceTimer)
+})
+
+async function search() {
+  const { searchMulti } = useTmdb()
+  const q = (query.value || '').trim()
+  if (q.length <= 2) return
+
+  loading.value = true
+  error.value = null
+  searched.value = true
+  currentMoviePage.value = 2
+  try {
+    const results = await searchMulti(q)
+    const list = results.results || []
+    movies.value = list.slice().sort((a, b) => (b.vote_count || 0) - (a.vote_count || 0))
+  } catch (e) {
+    error.value = e?.statusMessage || e?.message || 'Search failed.'
+    movies.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+async function getMore() {
+  const { searchMulti } = useTmdb()
+  const q = (query.value || '').trim()
+  if (!q) return
+  loadingMoreMovies.value = true
+  try {
+    const page = currentMoviePage.value
+    const data = await searchMulti(q, { page })
+    currentMoviePage.value++
+    movies.value.push(...(data.results || []))
+  } catch (e) {
+    /* ignore pagination errors */
+  } finally {
+    loadingMoreMovies.value = false
+  }
 }
 </script>
