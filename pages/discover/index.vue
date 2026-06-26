@@ -8,7 +8,7 @@
         <strong class="text-slate-300">{{ watchRegionLabel }}</strong>
         (change country in
         <NuxtLink to="/settings" class="text-indigo-300 underline hover:text-indigo-200">Settings</NuxtLink>).
-        Pick a service to see whatÔÇÖs on Netflix, Prime, and more ÔÇö or browse buy/rent catalogues.
+        Pick a service to see what is on Netflix, Prime, and more — or browse buy/rent catalogues.
       </p>
     </div>
 
@@ -60,9 +60,9 @@
         <p class="text-sm text-slate-400 mb-2">
           Service
           <span v-if="selectedProviderId" class="text-slate-300">
-            ÔÇö {{ selectedProviderName || 'selected' }}
+            — {{ selectedProviderName || 'selected' }}
           </span>
-          <span v-else class="text-slate-500">ÔÇö all in this availability mode</span>
+          <span v-else class="text-slate-500">— all in this availability mode</span>
         </p>
         <div v-if="providersPending" class="flex gap-2 overflow-x-auto py-1">
           <div
@@ -90,17 +90,13 @@
             role="option"
             :aria-selected="selectedProviderId === p.provider_id"
             class="flex items-center gap-2 rounded-lg border px-2 py-1.5 text-left transition-colors"
-            :class="
-              selectedProviderId === p.provider_id
-                ? 'border-indigo-400 bg-indigo-500/20 text-slate-100'
-                : 'border-slate-700 bg-slate-900/60 text-slate-300 hover:border-slate-500'
-            "
+            :class="providerChipClass(p)"
             @click="toggleProvider(p)"
           >
             <img
               v-if="p.logo_path"
               :src="logoSrc(p.logo_path)"
-              :alt=""
+              alt=""
               class="w-8 h-8 rounded-md object-cover shrink-0"
               loading="lazy"
             />
@@ -134,7 +130,7 @@
             :disabled="loadingMore"
             @click="loadMore"
           >
-            {{ loadingMore ? 'LoadingÔÇª' : 'See more' }}
+            {{ loadingMore ? 'Loading…' : 'See more' }}
           </button>
         </div>
       </template>
@@ -143,7 +139,7 @@
 </template>
 
 <script setup>
-useHead({ title: 'Discover ÔÇö Orbitra' })
+useHead({ title: 'Discover — Orbitra' })
 
 const {
   discoverMovies,
@@ -165,7 +161,6 @@ const {
   data: providerData,
   pending: providersPending,
   error: providerErr,
-  refresh: refreshProviders,
 } = useLazyAsyncData(
   () => `watch-providers-${media.value}-${watchRegion.value}`,
   async () => {
@@ -188,6 +183,12 @@ const providerError = computed(() => {
   return e.statusMessage || e.message || 'Could not load providers'
 })
 
+function providerChipClass(p) {
+  return selectedProviderId.value === p.provider_id
+    ? 'border-indigo-400 bg-indigo-500/20 text-slate-100'
+    : 'border-slate-700 bg-slate-900/60 text-slate-300 hover:border-slate-500'
+}
+
 function buildDiscoverOpts(pageNum) {
   const opts = {
     page: pageNum,
@@ -199,7 +200,7 @@ function buildDiscoverOpts(pageNum) {
   if (selectedProviderId.value) {
     opts.with_watch_providers = String(selectedProviderId.value)
   }
-  // TV discover uses first_air_date for "newest" ÔÇö map sort key
+  // TV discover uses first_air_date for "newest"
   if (media.value === 'tv' && sortBy.value === 'primary_release_date.desc') {
     opts.sort_by = 'first_air_date.desc'
   }
@@ -271,7 +272,7 @@ function applyFilters() {
 }
 
 watch(media, () => {
-  // Provider ids differ between movie/tv catalogues ÔÇö clear selection
+  // Provider ids differ between movie/tv catalogues — clear selection
   selectedProviderId.value = null
   selectedProviderName.value = ''
 })

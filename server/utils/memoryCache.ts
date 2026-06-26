@@ -1,5 +1,5 @@
 /**
- * Process-local TTL cache for Nitro handlers (single instance only ÔÇö not shared across deploys).
+ * Process-local TTL cache for Nitro handlers (single instance only — not shared across deploys).
  * Use to avoid re-hitting upstream APIs (e.g. TMDB) on repeated user traffic.
  *
  * @module server/utils/memoryCache
@@ -107,7 +107,7 @@ function msMinutes(n: number): number {
 }
 
 /**
- * TTL policy for TMDB proxy routes ÔÇö longer for stable detail payloads, shorter for search/lists.
+ * TTL policy for TMDB proxy routes — longer for stable detail payloads, shorter for search/lists.
  *
  * @param segments - Path segments under `/3/` (e.g. `['movie','550']`)
  * @returns TTL in ms
