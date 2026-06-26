@@ -5,13 +5,21 @@
  * Successful responses are held in-memory per Nitro instance (not shared across hosts)
  * so repeat traffic for the same path+query does not hammer TMDB.
  *
- * Headers:
+ * Adult content:
+ * - Client may send `X-Orbitra-Include-Adult: 1` when the user has enabled adult results.
+ * - Only then does the proxy set `include_adult=true` on the upstream TMDB URL.
+ * - Client-supplied `include_adult` query params are stripped (never trusted).
+ * - Preference is never echoed in response headers or body.
+ * - Adult-enabled requests are rate-limited to 60/min per IP.
+ *
+ * Headers (response):
  * - `X-Orbitra-Cache: HIT|MISS` — local memory cache outcome
  * - `Cache-Control` — private max-age aligned with the entry TTL (browser/CDN hint only)
  *
  * @route GET /api/tmdb/**
  * @returns Opaque TMDB JSON (`unknown`) — shape depends on the upstream resource
  * @throws 400 invalid / missing path
+ * @throws 429 adult rate limit exceeded
  * @throws 500 missing server configuration
  * @throws 4xx/5xx mirrored (when possible) from TMDB upstream failures
  *
@@ -23,6 +31,7 @@ import {
   cacheKeyFromPathQuery,
   tmdbProxyTtlMs,
 } from '../../utils/memoryCache'
+import { checkRateLimit, clientIpFromEvent } from '../../utils/rateLimit'
 
 /** Upstream TMDB error body (partial). */
 interface TmdbUpstreamErrorBody {
@@ -45,6 +54,13 @@ interface FetchErrorLike {
 export type TmdbProxyResponse = unknown
 
 const TMDB_API_BASE = 'https://api.themoviedb.org/3'
+
+/** Header clients set when adult is enabled (case-insensitive via getHeader). */
+const ADULT_INCLUDE_HEADER = 'x-orbitra-include-adult'
+
+/** Adult-enabled requests: 60 per minute per IP. */
+const ADULT_RATE_LIMIT = 60
+const ADULT_RATE_WINDOW_MS = 60_000
 
 /** Shared by all requests in this Node process only. */
 const responseCache = new MemoryCache<TmdbProxyResponse>({ maxEntries: 800 })
@@ -80,7 +96,6 @@ function resolvePathSegments(pathParam: string | string[] | undefined): string[]
     throw createError({ statusCode: 400, statusMessage: 'Invalid path' })
   }
 
-  // Reject absolute URLs / protocol smuggling in a segment
   if (segments.some((s) => /^(https?:|\/\/)/i.test(s))) {
     throw createError({ statusCode: 400, statusMessage: 'Invalid path segment' })
   }
@@ -89,20 +104,29 @@ function resolvePathSegments(pathParam: string | string[] | undefined): string[]
 }
 
 /**
- * Build upstream query string from the incoming request, stripping client `api_key`.
- *
- * @param query - Result of `getQuery(event)`
- * @param apiKey - Server TMDB key
- * @returns `URLSearchParams` including server `api_key`
+ * Whether the client is authorized to receive adult results for this request.
+ * Only trusts the dedicated request header — never client query `include_adult`.
+ */
+function clientWantsAdult(event: Parameters<typeof getHeader>[0]): boolean {
+  const raw = getHeader(event, ADULT_INCLUDE_HEADER)
+  if (!raw) return false
+  const v = String(raw).trim().toLowerCase()
+  return v === '1' || v === 'true' || v === 'yes'
+}
+
+/**
+ * Build upstream query string from the incoming request, stripping client secrets
+ * and forcing `include_adult` from the trusted header only.
  */
 function buildUpstreamSearch(
   query: Record<string, unknown>,
   apiKey: string,
+  includeAdult: boolean,
 ): URLSearchParams {
   const search = new URLSearchParams()
 
   for (const [key, value] of Object.entries(query)) {
-    if (key === 'api_key') continue
+    if (key === 'api_key' || key === 'include_adult') continue
     if (value === undefined || value === null) continue
     if (Array.isArray(value)) {
       for (const v of value) {
@@ -113,16 +137,28 @@ function buildUpstreamSearch(
     }
   }
 
+  search.set('include_adult', includeAdult ? 'true' : 'false')
   search.set('api_key', apiKey)
   return search
 }
 
 /**
- * Map an upstream / ofetch failure to a safe public H3 error.
- *
- * @param err - Unknown rejection from `$fetch`
- * @returns Never — always throws
+ * Query bag for cache keys: strip secrets and normalize include_adult so HIT/MISS
+ * segregates adult vs non-adult responses without leaking preference to clients.
  */
+function cacheQueryBag(
+  query: Record<string, unknown>,
+  includeAdult: boolean,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(query)) {
+    if (key === 'api_key' || key === 'include_adult') continue
+    out[key] = value
+  }
+  out.include_adult = includeAdult ? 'true' : 'false'
+  return out
+}
+
 function rethrowAsH3(err: unknown): never {
   const e = (err ?? {}) as FetchErrorLike
   const statusRaw =
@@ -155,13 +191,6 @@ function rethrowAsH3(err: unknown): never {
   })
 }
 
-/**
- * Fetch TMDB once for this cache key, coalescing concurrent callers.
- *
- * @param cacheKey - Stable path+query key (no api_key)
- * @param tmdbUrl - Full upstream URL including server api_key
- * @param ttlMs - How long to retain a successful body
- */
 async function fetchAndCache(
   cacheKey: string,
   tmdbUrl: string,
@@ -186,12 +215,6 @@ async function fetchAndCache(
   return pending
 }
 
-/**
- * Proxy handler: validate path, serve from local memory when possible, else TMDB v3.
- *
- * @param event - H3 event
- * @returns TMDB JSON body
- */
 export default defineEventHandler(async (event): Promise<TmdbProxyResponse> => {
   const config = useRuntimeConfig()
   const apiKey = config.tmdbAPI
@@ -203,10 +226,25 @@ export default defineEventHandler(async (event): Promise<TmdbProxyResponse> => {
     })
   }
 
+  const includeAdult = clientWantsAdult(event)
+
+  if (includeAdult) {
+    const ip = clientIpFromEvent(event)
+    const rl = checkRateLimit(`adult:${ip}`, ADULT_RATE_LIMIT, ADULT_RATE_WINDOW_MS)
+    if (!rl.allowed) {
+      setHeader(event, 'Retry-After', String(rl.retryAfterSec))
+      throw createError({
+        statusCode: 429,
+        statusMessage: 'Too many requests. Please try again shortly.',
+      })
+    }
+  }
+
   const segments = resolvePathSegments(event.context.params?.path)
   const incomingQuery = getQuery(event) as Record<string, unknown>
   const resourcePath = segments.join('/')
-  const cacheKey = cacheKeyFromPathQuery(resourcePath, incomingQuery)
+  const cacheQuery = cacheQueryBag(incomingQuery, includeAdult)
+  const cacheKey = cacheKeyFromPathQuery(resourcePath, cacheQuery)
   const ttlMs = tmdbProxyTtlMs(segments)
   const ttlSec = Math.max(1, Math.floor(ttlMs / 1000))
 
@@ -217,7 +255,7 @@ export default defineEventHandler(async (event): Promise<TmdbProxyResponse> => {
     return cached
   }
 
-  const search = buildUpstreamSearch(incomingQuery, String(apiKey))
+  const search = buildUpstreamSearch(incomingQuery, String(apiKey), includeAdult)
   const tmdbUrl = `${TMDB_API_BASE}/${resourcePath}?${search.toString()}`
 
   try {
