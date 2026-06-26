@@ -121,10 +121,28 @@ export interface TmdbPerson {
   name: string
   biography?: string
   birthday?: string
+  deathday?: string | null
   place_of_birth?: string
   profile_path?: string | null
   known_for_department?: string
   imdb_id?: string
+  also_known_as?: string[]
+  gender?: number
+  popularity?: number
+  homepage?: string | null
+  adult?: boolean
+}
+
+/** Person tagged / profile images. */
+export interface TmdbPersonImages {
+  id?: number
+  profiles?: Array<{
+    file_path: string
+    width?: number
+    height?: number
+    aspect_ratio?: number
+    vote_average?: number
+  }>
 }
 
 /** Cast / crew member on credits endpoints. */
@@ -781,6 +799,66 @@ export function useTmdb() {
     return tmdb<TmdbCombinedCredits>(`person/${requireId(id)}/combined_credits`)
   }
 
+  /** IMDb / social external ids for a person. */
+  function getPersonExternalIds(id: string | number): Promise<TmdbExternalIds> {
+    return tmdb<TmdbExternalIds>(`person/${requireId(id)}/external_ids`)
+  }
+
+  /** Profile / tagged stills for a person. */
+  function getPersonImages(id: string | number): Promise<TmdbPersonImages> {
+    return tmdb<TmdbPersonImages>(`person/${requireId(id)}/images`)
+  }
+
+  /**
+   * OpenStreetMap search URL for a birthplace string (no API key; opens in new tab).
+   */
+  function birthplaceMapUrl(place: string | null | undefined): string {
+    const q = String(place || '').trim()
+    if (!q) return ''
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(q)}`
+  }
+
+  /** Social / IMDb links from person external_ids (+ optional homepage on person). */
+  function personExternalLinks(
+    ids: TmdbExternalIds | null | undefined,
+    homepage?: string | null,
+  ): Array<{ id: string; label: string; href: string }> {
+    const out: Array<{ id: string; label: string; href: string }> = []
+    if (ids?.imdb_id) {
+      out.push({
+        id: 'imdb',
+        label: 'IMDb',
+        href: `https://www.imdb.com/name/${ids.imdb_id}/`,
+      })
+    }
+    if (ids?.instagram_id) {
+      out.push({
+        id: 'instagram',
+        label: 'Instagram',
+        href: `https://www.instagram.com/${ids.instagram_id}/`,
+      })
+    }
+    if (ids?.twitter_id) {
+      out.push({
+        id: 'twitter',
+        label: 'X / Twitter',
+        href: `https://twitter.com/${ids.twitter_id}`,
+      })
+    }
+    if (ids?.facebook_id) {
+      out.push({
+        id: 'facebook',
+        label: 'Facebook',
+        href: `https://www.facebook.com/${ids.facebook_id}`,
+      })
+    }
+    const home = homepage && String(homepage).trim()
+    if (home && /^https?:\/\//i.test(home)) {
+      out.push({ id: 'homepage', label: 'Website', href: home })
+    }
+    return out
+  }
+
   /** Movie collection (franchise) detail — parts are TMDB membership; order by release_date. */
   function getCollection(id: string | number): Promise<TmdbCollection> {
     return tmdb<TmdbCollection>(`collection/${requireId(id)}`)
@@ -991,6 +1069,10 @@ export function useTmdb() {
     getTvEpisode,
     getPerson,
     getPersonCombinedCredits,
+    getPersonExternalIds,
+    getPersonImages,
+    birthplaceMapUrl,
+    personExternalLinks,
     getCollection,
     sortCollectionParts,
     searchCollections,
