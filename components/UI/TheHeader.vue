@@ -13,7 +13,7 @@
       </div>
 
       <nav
-        class="sm:w-1/3 flex justify-center items-center gap-4 sm:gap-6 text-sm sm:text-base"
+        class="sm:w-1/3 flex flex-wrap justify-center items-center gap-3 sm:gap-5 text-sm sm:text-base"
         aria-label="Primary"
       >
         <NuxtLink
@@ -37,9 +37,28 @@
         >
           Search
         </NuxtLink>
+        <NuxtLink
+          v-if="isAdultEnabled"
+          to="/explore/adult"
+          class="text-rose-300/90 hover:text-rose-200 transition-colors"
+          active-class="text-rose-100 font-semibold"
+        >
+          Adult
+        </NuxtLink>
+        <NuxtLink
+          to="/settings"
+          class="text-slate-300 hover:text-white transition-colors"
+          active-class="text-white font-semibold"
+        >
+          Settings
+        </NuxtLink>
       </nav>
 
       <div class="sm:w-1/3" />
     </div>
   </header>
 </template>
+
+<script setup>
+const { isAdultEnabled } = useAdultContent()
+</script>
