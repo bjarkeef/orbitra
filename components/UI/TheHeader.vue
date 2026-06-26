@@ -31,11 +31,25 @@
           Top 100
         </NuxtLink>
         <NuxtLink
+          to="/discover"
+          class="text-slate-300 hover:text-white transition-colors"
+          active-class="text-white font-semibold"
+        >
+          Discover
+        </NuxtLink>
+        <NuxtLink
           to="/search"
           class="text-slate-300 hover:text-white transition-colors"
           active-class="text-white font-semibold"
         >
           Search
+        </NuxtLink>
+        <NuxtLink
+          to="/settings"
+          class="text-slate-300 hover:text-white transition-colors"
+          active-class="text-white font-semibold"
+        >
+          Settings
         </NuxtLink>
       </nav>
 

@@ -1,319 +1,220 @@
 <template>
-  <div v-if="providers.results">
-    <select
-      class="select-field"
-      v-model="selectedCountry"
-      placeholder="Please select country"
-      name="providers"
-    >
-      <option disabled value="null" selected>Please select country</option>
-      <option
-        v-for="provider in providers.results"
-        :key="provider.provider_id"
-        :value="provider.link.slice(-2)"
+  <div v-if="hasAnyRegion" class="watch-providers">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <label class="text-sm text-slate-400 shrink-0" for="watch-region-select">
+        Country
+      </label>
+      <select
+        id="watch-region-select"
+        class="select-field text-sm min-w-[10rem]"
+        :value="activeRegion"
+        @change="onRegionChange"
       >
-        {{ countries[provider.link.slice(-2)] }}
-      </option>
-    </select>
-    <!-- TODO: MAKE BETTER PROVIDER LIST
-                - show places where you can watch, not only buy
-                - optimize?
-     -->
-    <div v-for="provider in providers.results" :key="provider.provider_id">
-      <div v-if="provider.link.includes('=' + selectedCountry)">
-        <div class="grid grid-cols-4 gap-5 mt-5 mb-5" v-if="provider.buy || provider.flatrate">
-          <div v-for="buy in provider.buy" :key="buy.provider_id">
-            <a target="_blank" rel="noopener nofollow" :href="provider.link">
-              <img
-                :src="logoSrc(buy.logo_path)"
-                :alt="buy.provider_name"
-                class="rounded-lg hover:scale-105 transition-all"
-              />
-            </a>
-          </div>
-          <div v-for="buy in provider.flatrate" :key="buy.provider_id">
-            <a target="_blank" rel="noopener nofollow" :href="provider.link">
-              <img
-                :src="logoSrc(buy.logo_path)"
-                :alt="buy.provider_name"
-                class="rounded-lg hover:scale-105 transition-all"
-              />
-            </a>
-          </div>
+        <option
+          v-for="code in availableRegions"
+          :key="code"
+          :value="code"
+        >
+          {{ regionLabel(code) }}
+        </option>
+      </select>
+    </div>
+
+    <div v-if="!regionData" class="text-sm text-slate-500 py-2">
+      No streaming, rental, or purchase options listed for {{ regionLabel(activeRegion) }}.
+    </div>
+
+    <template v-else>
+      <div v-if="streamList.length" class="mb-4">
+        <div class="flex items-baseline gap-2 mb-2">
+          <h4 class="text-sm font-semibold text-slate-200">Stream</h4>
+          <span class="text-xs text-slate-500">Included with subscription</span>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a
+            v-for="p in streamList"
+            :key="'s-' + p.provider_id"
+            :href="regionData.link || '#'"
+            target="_blank"
+            rel="noopener nofollow"
+            class="group flex flex-col items-center gap-1 w-16"
+            :title="p.provider_name"
+          >
+            <img
+              v-if="p.logo_path"
+              :src="logoSrc(p.logo_path)"
+              :alt="p.provider_name"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              loading="lazy"
+            />
+            <span
+              v-else
+              class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center text-[10px] text-center text-slate-300 px-0.5"
+            >{{ p.provider_name }}</span>
+            <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
+          </a>
         </div>
       </div>
-    </div>
-    <span class="text-sm opacity-25">Powered by JustWatch</span>
+
+      <div v-if="freeList.length" class="mb-4">
+        <div class="flex items-baseline gap-2 mb-2">
+          <h4 class="text-sm font-semibold text-slate-200">Free</h4>
+          <span class="text-xs text-slate-500">Ad-supported or free tier</span>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a
+            v-for="p in freeList"
+            :key="'f-' + p.provider_id"
+            :href="regionData.link || '#'"
+            target="_blank"
+            rel="noopener nofollow"
+            class="group flex flex-col items-center gap-1 w-16"
+            :title="p.provider_name"
+          >
+            <img
+              v-if="p.logo_path"
+              :src="logoSrc(p.logo_path)"
+              :alt="p.provider_name"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              loading="lazy"
+            />
+            <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
+          </a>
+        </div>
+      </div>
+
+      <div v-if="rentList.length" class="mb-4">
+        <h4 class="text-sm font-semibold text-slate-200 mb-2">Rent</h4>
+        <div class="flex flex-wrap gap-3">
+          <a
+            v-for="p in rentList"
+            :key="'r-' + p.provider_id"
+            :href="regionData.link || '#'"
+            target="_blank"
+            rel="noopener nofollow"
+            class="group flex flex-col items-center gap-1 w-16"
+            :title="p.provider_name"
+          >
+            <img
+              v-if="p.logo_path"
+              :src="logoSrc(p.logo_path)"
+              :alt="p.provider_name"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              loading="lazy"
+            />
+            <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
+          </a>
+        </div>
+      </div>
+
+      <div v-if="buyList.length" class="mb-4">
+        <h4 class="text-sm font-semibold text-slate-200 mb-2">Buy</h4>
+        <div class="flex flex-wrap gap-3">
+          <a
+            v-for="p in buyList"
+            :key="'b-' + p.provider_id"
+            :href="regionData.link || '#'"
+            target="_blank"
+            rel="noopener nofollow"
+            class="group flex flex-col items-center gap-1 w-16"
+            :title="p.provider_name"
+          >
+            <img
+              v-if="p.logo_path"
+              :src="logoSrc(p.logo_path)"
+              :alt="p.provider_name"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              loading="lazy"
+            />
+            <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
+          </a>
+        </div>
+      </div>
+
+      <p
+        v-if="!streamList.length && !freeList.length && !rentList.length && !buyList.length"
+        class="text-sm text-slate-500 py-2"
+      >
+        No outlets for this title in {{ regionLabel(activeRegion) }}.
+      </p>
+    </template>
+
+    <p class="text-xs text-slate-600 mt-4">
+      Availability data by JustWatch. Links open JustWatch for this title.
+    </p>
   </div>
+  <p v-else class="text-sm text-slate-500">No watch providers available.</p>
 </template>
 
-<script>
-export default {
-  props: ['providers'],
-  setup() {
-    const { imageUrl } = useTmdb()
-    return { imageUrl }
+<script setup>
+import { COUNTRY_NAMES, WATCH_REGION_OPTIONS } from '~/composables/useWatchRegion'
+
+const props = defineProps({
+  /** TMDB `/watch/providers` payload */
+  providers: {
+    type: Object,
+    default: null,
   },
-  methods: {
-    logoSrc(path) {
-      return this.imageUrl(path, 'original')
-    },
-  },
-  data() {
-    return {
-      selectedCountry: 'null',
-      countries: {
-        BE: 'Belgium',
-        AD: 'Andorra',
-        AE: 'United Arab Emirates',
-        AF: 'Afghanistan',
-        AG: 'Antigua and Barbuda',
-        AI: 'Anguilla',
-        AL: 'Albania',
-        AM: 'Armenia',
-        AO: 'Angola',
-        AQ: 'Antarctica',
-        AR: 'Argentina',
-        AS: 'American Samoa',
-        AT: 'Austria',
-        AU: 'Australia',
-        AW: 'Aruba',
-        AX: 'Åland Islands',
-        AZ: 'Azerbaijan',
-        BA: 'Bosnia and Herzegovina',
-        BB: 'Barbados',
-        BD: 'Bangladesh',
-        BE: 'Belgium',
-        BF: 'Burkina Faso',
-        BG: 'Bulgaria',
-        BH: 'Bahrain',
-        BI: 'Burundi',
-        BJ: 'Benin',
-        BL: 'Saint Barthélemy',
-        BM: 'Bermuda',
-        BN: 'Brunei Darussalam',
-        BO: 'Bolivia',
-        BQ: 'Bonaire, Sint Eustatius and Saba',
-        BR: 'Brazil',
-        BS: 'The Bahamas',
-        BT: 'Bhutan',
-        BV: 'Bouvet Island',
-        BW: 'Botswana',
-        BY: 'Belarus',
-        BZ: 'Belize',
-        CA: 'Canada',
-        CC: 'The Cocos Islands',
-        CD: 'Congo (the Democratic Republic of the)',
-        CF: 'Central African Republic (the)',
-        CH: 'Switzerland',
-        CI: "Côte d'Ivoire",
-        CK: 'Cook Islands (the)',
-        CL: 'Chile',
-        CM: 'Cameroon',
-        CN: 'China',
-        CO: 'Colombia',
-        CR: 'Costa Rica',
-        CU: 'Cuba',
-        CV: 'Cabo Verde',
-        CW: 'Curaçao',
-        CX: 'Christmas Island',
-        CY: 'Cyprus',
-        CZ: 'Czechia',
-        DE: 'Germany',
-        DJ: 'Djibouti',
-        DK: 'Denmark',
-        DM: 'Dominica',
-        DO: 'Dominican Republic (the)',
-        DZ: 'Algeria',
-        EC: 'Ecuador',
-        EE: 'Estonia',
-        EG: 'Egypt',
-        EH: 'Western Sahara',
-        ER: 'Eritrea',
-        ES: 'Spain',
-        ET: 'Ethiopia',
-        FI: 'Finland',
-        FJ: 'Fiji',
-        FK: 'Falkland Islands (the) [Malvinas]',
-        FM: 'Micronesia (Federated States of)',
-        FO: 'Faroe Islands (the)',
-        FR: 'France',
-        GA: 'Gabon',
-        GB: 'United Kingdom of Great Britain and Northern Ireland (the)',
-        GD: 'Grenada',
-        GE: 'Georgia',
-        GF: 'French Guiana',
-        GG: 'Guernsey',
-        GH: 'Ghana',
-        GI: 'Gibraltar',
-        GL: 'Greenland',
-        GM: 'Gambia (the)',
-        GN: 'Guinea',
-        GP: 'Guadeloupe',
-        GQ: 'Equatorial Guinea',
-        GR: 'Greece',
-        GS: 'South Georgia and the South Sandwich Islands',
-        GT: 'Guatemala',
-        GU: 'Guam',
-        GW: 'Guinea-Bissau',
-        GY: 'Guyana',
-        HK: 'Hong Kong',
-        HM: 'Heard Island and McDonald Islands',
-        HN: 'Honduras',
-        HR: 'Croatia',
-        HT: 'Haiti',
-        HU: 'Hungary',
-        ID: 'Indonesia',
-        IE: 'Ireland',
-        IL: 'Israel',
-        IM: 'Isle of Man',
-        IN: 'India',
-        IO: 'British Indian Ocean Territory (the)',
-        IQ: 'Iraq',
-        IR: 'Iran (Islamic Republic of)',
-        IS: 'Iceland',
-        IT: 'Italy',
-        JE: 'Jersey',
-        JM: 'Jamaica',
-        JO: 'Jordan',
-        JP: 'Japan',
-        KE: 'Kenya',
-        KG: 'Kyrgyzstan',
-        KH: 'Cambodia',
-        KI: 'Kiribati',
-        KM: 'Comoros (the)',
-        KN: 'Saint Kitts and Nevis',
-        KP: "Korea (the Democratic People's Republic of)",
-        KR: 'Korea (the Republic of)',
-        KW: 'Kuwait',
-        KY: 'Cayman Islands (the)',
-        KZ: 'Kazakhstan',
-        LA: "Lao People's Democratic Republic (the)",
-        LB: 'Lebanon',
-        LC: 'Saint Lucia',
-        LI: 'Liechtenstein',
-        LK: 'Sri Lanka',
-        LR: 'Liberia',
-        LS: 'Lesotho',
-        LT: 'Lithuania',
-        LU: 'Luxembourg',
-        LV: 'Latvia',
-        LY: 'Libya',
-        MA: 'Morocco',
-        MC: 'Monaco',
-        MD: 'Moldova (the Republic of)',
-        ME: 'Montenegro',
-        MF: 'Saint Martin (French part) ',
-        MG: 'Madagascar',
-        MH: 'Marshall Islands (the)',
-        MK: 'Republic of North Macedonia',
-        ML: 'Mali',
-        MM: 'Myanmar',
-        MN: 'Mongolia',
-        MO: 'Macao',
-        MP: 'Northern Mariana Islands (the)',
-        MQ: 'Martinique',
-        MR: 'Mauritania',
-        MS: 'Montserrat',
-        MT: 'Malta',
-        MU: 'Mauritius',
-        MV: 'Maldives',
-        MW: 'Malawi',
-        MX: 'Mexico',
-        MY: 'Malaysia',
-        MZ: 'Mozambique',
-        NA: 'Namibia',
-        NC: 'New Caledonia',
-        NE: 'Niger (the)',
-        NF: 'Norfolk Island',
-        NG: 'Nigeria',
-        NI: 'Nicaragua',
-        NL: 'Netherlands (the)',
-        NO: 'Norway',
-        NP: 'Nepal',
-        NR: 'Nauru',
-        NU: 'Niue',
-        NZ: 'New Zealand ',
-        OM: 'Oman',
-        PA: 'Panama',
-        PE: 'Peru',
-        PF: 'French Polynesia',
-        PG: 'Papua New Guinea',
-        PH: 'Philippines (the)',
-        PK: 'Pakistan',
-        PL: 'Poland',
-        PM: 'Saint Pierre and Miquelon',
-        PN: 'Pitcairn',
-        PR: 'Puerto Rico',
-        PS: 'Palestine, State of',
-        PT: 'Portugal',
-        PW: 'Palau',
-        PY: 'Paraguay',
-        QA: 'Qatar',
-        RE: 'Réunion',
-        RO: 'Romania',
-        RS: 'Serbia',
-        RU: 'Russian Federation (the)',
-        RW: 'Rwanda',
-        SA: 'Saudi Arabia',
-        SB: 'Solomon Islands',
-        SC: 'Seychelles',
-        SD: 'Sudan (the)',
-        SE: 'Sweden',
-        SG: 'Singapore',
-        SH: 'Saint Helena, Ascension and Tristan da Cunha',
-        SI: 'Slovenia',
-        SJ: 'Svalbard and Jan Mayen',
-        SK: 'Slovakia',
-        SL: 'Sierra Leone',
-        SM: 'San Marino',
-        SN: 'Senegal',
-        SO: 'Somalia',
-        SR: 'Suriname',
-        SS: 'South Sudan',
-        ST: 'Sao Tome and Principe',
-        SV: 'El Salvador',
-        SX: 'Sint Maarten (Dutch part) ',
-        SY: 'Syrian Arab Republic',
-        SZ: 'Eswatini',
-        TC: 'Turks and Caicos Islands (the) ',
-        TD: 'Chad',
-        TF: 'French Southern Territories (the)',
-        TG: 'Togo',
-        TH: 'Thailand',
-        TJ: 'Tajikistan',
-        TK: 'Tokelau',
-        TL: 'Timor-Leste',
-        TM: 'Turkmenistan',
-        TN: 'Tunisia',
-        TO: 'Tonga',
-        TR: 'Turkey',
-        TT: 'Trinidad and Tobago',
-        TV: 'Tuvalu',
-        TW: 'Taiwan',
-        TZ: 'Tanzania, United Republic of',
-        UA: 'Ukraine',
-        UG: 'Uganda',
-        UM: 'United States Minor Outlying Islands (the)',
-        US: 'United States of America (the)',
-        UY: 'Uruguay',
-        UZ: 'Uzbekistan',
-        VA: 'Holy See (the) ',
-        VC: 'Saint Vincent and the Grenadines ',
-        VE: 'Venezuela (Bolivarian Republic of)',
-        VG: 'Virgin Islands (British)',
-        VI: 'Virgin Islands (U.S.)',
-        VN: 'Vietnam',
-        VU: 'Vanuatu',
-        WF: 'Wallis and Futuna',
-        WS: 'Samoa',
-        YE: 'Yemen',
-        YT: 'Mayotte',
-        ZA: 'South Africa',
-        ZM: 'Zambia',
-        ZW: 'Zimbabwe',
-      },
-    }
-  },
+})
+
+const { imageUrl } = useTmdb()
+const { watchRegion, setWatchRegion } = useWatchRegion()
+
+const resultsMap = computed(() => props.providers?.results || {})
+
+const hasAnyRegion = computed(() => Object.keys(resultsMap.value).length > 0)
+
+const availableRegions = computed(() => {
+  const keys = Object.keys(resultsMap.value).sort()
+  const preferred = watchRegion.value
+  if (!keys.length) return []
+  const ordered = []
+  if (keys.includes(preferred)) ordered.push(preferred)
+  for (const o of WATCH_REGION_OPTIONS) {
+    if (keys.includes(o.code) && !ordered.includes(o.code)) ordered.push(o.code)
+  }
+  for (const k of keys) {
+    if (!ordered.includes(k)) ordered.push(k)
+  }
+  return ordered
+})
+
+const activeRegion = computed(() => {
+  const keys = availableRegions.value
+  if (!keys.length) return watchRegion.value
+  if (keys.includes(watchRegion.value)) return watchRegion.value
+  return keys[0]
+})
+
+const regionData = computed(() => resultsMap.value[activeRegion.value] || null)
+
+function sortProviders(list) {
+  if (!Array.isArray(list)) return []
+  return list.slice().sort((a, b) => {
+    const pa = a.display_priority ?? 999
+    const pb = b.display_priority ?? 999
+    if (pa !== pb) return pa - pb
+    return String(a.provider_name || '').localeCompare(String(b.provider_name || ''))
+  })
+}
+
+const streamList = computed(() => sortProviders(regionData.value?.flatrate))
+const freeList = computed(() =>
+  sortProviders([...(regionData.value?.free || []), ...(regionData.value?.ads || [])]),
+)
+const rentList = computed(() => sortProviders(regionData.value?.rent))
+const buyList = computed(() => sortProviders(regionData.value?.buy))
+
+function regionLabel(code) {
+  return COUNTRY_NAMES[code] || code
+}
+
+function logoSrc(path) {
+  return imageUrl(path, 'w185')
+}
+
+function onRegionChange(ev) {
+  const code = ev?.target?.value
+  if (code) setWatchRegion(code)
 }
 </script>
