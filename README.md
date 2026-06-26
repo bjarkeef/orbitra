@@ -1,37 +1,42 @@
 # Orbitra
 
-Movie & TV discovery on **Nuxt 3** + **Tailwind**, powered by [TMDB](https://www.themoviedb.org/).  
-Direction: map collaboration — **orbital co-star graphs** on person pages (in progress; see [ROADMAP.md](./ROADMAP.md)).
+Open-source **movie & TV discovery** app built with [Nuxt 3](https://nuxt.com/) and [Tailwind CSS](https://tailwindcss.com/), powered by the [TMDB](https://www.themoviedb.org/) API.
+
+Browse titles, search, charts, franchises, streaming availability (via TMDB / JustWatch data), and rich person pages — including an optional co-star **orbit** graph.
+
+## Features
+
+- Home rails, **Discover** (filter by streaming service / region), **Search**, **Top 100**
+- **Collections** — franchises with watch order and local rating progress
+- **Where to watch** on titles (region preference in Settings)
+- **Person pages** — bio, birthplace map, career timeline, role breakdown, social / IMDb links, co-star orbit
+- TMDB key stays **server-only** (`/api/tmdb/*` proxy)
 
 ## Setup
 
-```bash
-# install
-yarn install
-# or: npm install
-
-# env (server-only — never expose to the client)
-cp .env.example .env
-# edit .env and set TMDB_API=your_key
-```
-
-Get a key from [TMDB API settings](https://www.themoviedb.org/settings/api).
-
-## Scripts
+You need a free [TMDB API key](https://www.themoviedb.org/settings/api).
 
 ```bash
-yarn dev        # http://localhost:3000
-yarn build      # production build
-yarn preview    # preview production build
-yarn generate   # static generation (if used)
+npm install          # or: yarn install
+cp .env.example .env # set TMDB_API=your_key
+npm run dev          # http://localhost:3000
 ```
 
-## Architecture notes
+```bash
+npm run build
+npm run preview
+```
 
-- The browser calls **`/api/tmdb/*` only**. Nitro appends the TMDB key on the server.
-- Prefer `useTmdb()` helpers from `composables/useTmdb.ts` instead of talking to TMDB directly.
-- Track work in **ROADMAP.md** (Phase 1 foundation → Phase 2 orbital graph → polish).
+## Notes
 
-## TMDB attribution
+- Client code should use `composables/useTmdb.ts` — never call TMDB with the API key in the browser.
+- Longer-term ideas live in [ROADMAP.md](./ROADMAP.md); this README only describes what works today.
+- Contributions welcome: open an issue or PR. Keep changes focused.
 
-This product uses the TMDB API but is not endorsed or certified by TMDB.
+## License
+
+See [LICENSE](./LICENSE) (MIT).
+
+## Attribution
+
+This product uses the TMDB API but is **not** endorsed or certified by TMDB. Streaming availability data is provided through TMDB and attributed to JustWatch where shown.
