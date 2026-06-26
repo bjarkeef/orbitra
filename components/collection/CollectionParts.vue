@@ -140,18 +140,25 @@
                   <span>Your rating</span>
                   <select
                     class="select-field text-xs py-1.5 min-w-[4rem]"
-                    :value="ratingFor(part.id)?.score ?? ''"
+                    :value="scoreString(part.id)"
                     @change="onRate(part.id, $event)"
                   >
                     <option value="">—</option>
-                    <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+                    <option v-for="n in 10" :key="n" :value="String(n)">{{ n }}</option>
                   </select>
                 </label>
+                <span
+                  v-if="justSavedId === part.id"
+                  class="text-xs text-emerald-400/90"
+                  role="status"
+                >
+                  Saved
+                </span>
                 <button
                   v-if="ratingFor(part.id)"
                   type="button"
                   class="text-xs text-slate-500 underline hover:text-slate-300"
-                  @click="clearRating(part.id)"
+                  @click="onClear(part.id)"
                 >
                   Clear
                 </button>
@@ -227,17 +234,24 @@
             <label class="text-xs text-slate-500">Rate</label>
             <select
               class="select-field text-xs py-1"
-              :value="ratingFor(part.id)?.score ?? ''"
+              :value="scoreString(part.id)"
               @change="onRate(part.id, $event)"
             >
               <option value="">—</option>
-              <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+              <option v-for="n in 10" :key="n" :value="String(n)">{{ n }}</option>
             </select>
+            <span
+              v-if="justSavedId === part.id"
+              class="text-xs text-emerald-400/90"
+              role="status"
+            >
+              Saved
+            </span>
             <button
               v-if="ratingFor(part.id)"
               type="button"
               class="text-xs text-slate-500 underline hover:text-slate-300"
-              @click="clearRating(part.id)"
+              @click="onClear(part.id)"
             >
               Clear
             </button>
@@ -268,15 +282,27 @@ const props = defineProps({
 })
 
 const { imageUrl, sortCollectionParts } = useTmdb()
-const { getRating, rateMovie, clearRating, progressForIds } = useMovieRatings()
+const {
+  ratings,
+  getRating,
+  getRatingScoreString,
+  rateMovie,
+  clearRating,
+  progressForIds,
+} = useMovieRatings()
+
+const justSavedId = ref(null)
+let savedTimer = null
 
 const orderedParts = computed(() =>
   sortCollectionParts(props.collection?.parts || []),
 )
 
-const progress = computed(() =>
-  progressForIds(orderedParts.value.map((p) => p.id)),
-)
+// Depend on ratings map so progress / badges update when a score changes
+const progress = computed(() => {
+  void ratings.value
+  return progressForIds(orderedParts.value.map((p) => p.id))
+})
 
 function posterSrc(part) {
   return imageUrl(part?.poster_path, 'w500')
@@ -301,7 +327,21 @@ function formatDate(d) {
 }
 
 function ratingFor(id) {
+  void ratings.value
   return getRating(id)
+}
+
+function scoreString(id) {
+  void ratings.value
+  return getRatingScoreString(id)
+}
+
+function flashSaved(id) {
+  justSavedId.value = id
+  if (savedTimer) clearTimeout(savedTimer)
+  savedTimer = setTimeout(() => {
+    if (justSavedId.value === id) justSavedId.value = null
+  }, 1600)
 }
 
 function onRate(id, ev) {
@@ -310,6 +350,15 @@ function onRate(id, ev) {
     clearRating(id)
     return
   }
-  rateMovie(id, Number(v))
+  if (rateMovie(id, Number(v))) flashSaved(id)
 }
+
+function onClear(id) {
+  clearRating(id)
+  justSavedId.value = null
+}
+
+onBeforeUnmount(() => {
+  if (savedTimer) clearTimeout(savedTimer)
+})
 </script>
