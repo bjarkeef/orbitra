@@ -133,14 +133,18 @@ export function tmdbProxyTtlMs(segments: string[]): number {
     return msMinutes(15)
   }
 
-  // Credits / providers / videos / external_ids on a title
+  // Watch providers catalogue + per-title availability (stable for hours; region in query)
+  if (root === 'watch' || segments.includes('watch') || leaf === 'providers') {
+    return msMinutes(6 * 60) // 6 hours — availability does not churn constantly
+  }
+
+  // Credits / videos / external_ids / images on a title
   if (
     leaf === 'credits' ||
     leaf === 'combined_credits' ||
     leaf === 'videos' ||
     leaf === 'external_ids' ||
-    leaf === 'images' ||
-    segments.includes('watch')
+    leaf === 'images'
   ) {
     return msMinutes(45)
   }

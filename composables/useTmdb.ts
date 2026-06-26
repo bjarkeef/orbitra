@@ -153,18 +153,60 @@ export interface TmdbCombinedCredits {
   crew?: TmdbMediaItem[]
 }
 
+/** Single streaming / rental / purchase outlet on a title. */
+export interface TmdbWatchProvider {
+  provider_id: number
+  provider_name: string
+  logo_path?: string | null
+  display_priority?: number
+}
+
+/** Availability for one ISO country (JustWatch-backed). */
+export interface TmdbWatchProviderRegion {
+  link?: string
+  flatrate?: TmdbWatchProvider[]
+  free?: TmdbWatchProvider[]
+  ads?: TmdbWatchProvider[]
+  rent?: TmdbWatchProvider[]
+  buy?: TmdbWatchProvider[]
+}
+
 /** Watch-provider results keyed by ISO country code. */
 export interface TmdbWatchProviders {
   id?: number
-  results?: Record<
-    string,
-    {
-      link?: string
-      flatrate?: Array<{ provider_id: number; provider_name: string; logo_path?: string }>
-      buy?: Array<{ provider_id: number; provider_name: string; logo_path?: string }>
-      rent?: Array<{ provider_id: number; provider_name: string; logo_path?: string }>
-    }
-  >
+  results?: Record<string, TmdbWatchProviderRegion>
+}
+
+/** Entry from `/watch/providers/movie` or `/watch/providers/tv`. */
+export interface TmdbWatchProviderListItem {
+  provider_id: number
+  provider_name: string
+  logo_path?: string | null
+  display_priority?: number
+}
+
+export interface TmdbWatchProviderListResult {
+  results?: TmdbWatchProviderListItem[]
+}
+
+/** Monetization types accepted by TMDB discover `with_watch_monetization_types`. */
+export type TmdbWatchMonetization = 'flatrate' | 'free' | 'ads' | 'rent' | 'buy'
+
+/** Options for discover movie/TV with optional provider filters. */
+export interface DiscoverMediaOptions {
+  page?: number
+  sort_by?: string
+  'vote_count.gte'?: number
+  'vote_average.gte'?: number
+  with_genres?: string
+  /** Pipe-separated TMDB provider ids (OR within; AND with region). */
+  with_watch_providers?: string
+  /** ISO 3166-1 alpha-2 — required when filtering by providers. */
+  watch_region?: string
+  /** Pipe-separated: flatrate|free|ads|rent|buy */
+  with_watch_monetization_types?: string
+  primary_release_year?: number
+  first_air_date_year?: number
 }
 
 /** Videos / trailers for a title. */
@@ -520,9 +562,120 @@ export function useTmdb() {
     return tmdb<TmdbCredits>(`movie/${requireId(id)}/credits`)
   }
 
-  /** JustWatch-backed provider list for a movie. */
+  /** JustWatch-backed provider list for a movie (all regions; filter client-side by country). */
   function getMovieProviders(id: string | number): Promise<TmdbWatchProviders> {
     return tmdb<TmdbWatchProviders>(`movie/${requireId(id)}/watch/providers`)
+  }
+
+  /** JustWatch-backed provider list for a TV show. */
+  function getTvProviders(id: string | number): Promise<TmdbWatchProviders> {
+    return tmdb<TmdbWatchProviders>(`tv/${requireId(id)}/watch/providers`)
+  }
+
+  /**
+   * Providers available for a title in one region (stream / rent / buy / free / ads).
+   * Returns null when TMDB has no data for that country.
+   */
+  function regionProviders(
+    payload: TmdbWatchProviders | null | undefined,
+    region: string,
+  ): TmdbWatchProviderRegion | null {
+    const code = String(region || '').trim().toUpperCase()
+    if (!code || !payload?.results) return null
+    return payload.results[code] || null
+  }
+
+  /** True when the title has at least one flatrate (subscription) outlet in the region. */
+  function hasStreamingInRegion(
+    payload: TmdbWatchProviders | null | undefined,
+    region: string,
+  ): boolean {
+    const r = regionProviders(payload, region)
+    return !!(r?.flatrate && r.flatrate.length > 0)
+  }
+
+  /**
+   * Catalogue of providers that serve a region (for discover chips / filters).
+   * TMDB requires `watch_region` for meaningful results.
+   *
+   * @param media - `movie` or `tv` (catalogues can differ slightly)
+   * @param watchRegion - ISO country code
+   */
+  function getWatchProviderList(
+    media: 'movie' | 'tv',
+    watchRegion: string,
+  ): Promise<TmdbWatchProviderListResult> {
+    const region = String(watchRegion || '').trim().toUpperCase()
+    if (!/^[A-Z]{2}$/.test(region)) {
+      throw new Error('watch_region must be a 2-letter country code')
+    }
+    return tmdb<TmdbWatchProviderListResult>(`watch/providers/${media}`, {
+      watch_region: region,
+    })
+  }
+
+  /**
+   * Run async work over items with limited concurrency (provider checks, etc.).
+   */
+  async function mapPoolLimited<T, R>(
+    items: T[],
+    limit: number,
+    fn: (item: T, index: number) => Promise<R>,
+  ): Promise<R[]> {
+    const out: R[] = new Array(items.length)
+    let next = 0
+    async function worker() {
+      while (next < items.length) {
+        const i = next++
+        out[i] = await fn(items[i], i)
+      }
+    }
+    const n = Math.min(limit, Math.max(1, items.length))
+    await Promise.all(Array.from({ length: n }, () => worker()))
+    return out
+  }
+
+  /**
+   * Keep only movie/TV multi-search hits that have subscription (flatrate) availability
+   * in the given region. People rows are dropped when filtering for streaming.
+   */
+  async function filterStreamingOnly(
+    items: TmdbMediaItem[],
+    region: string,
+  ): Promise<TmdbMediaItem[]> {
+    const code = String(region || '').trim().toUpperCase()
+    if (!code) return items
+
+    const candidates = items.filter((it) => {
+      const mt = it.media_type
+      return mt === 'movie' || mt === 'tv' || (!mt && (it.title || it.name))
+    })
+
+    const flags = await mapPoolLimited(candidates, 4, async (it) => {
+      const mt =
+        it.media_type === 'tv' || (!it.media_type && it.name && !it.title)
+          ? 'tv'
+          : 'movie'
+      try {
+        const providers =
+          mt === 'tv'
+            ? await getTvProviders(it.id)
+            : await getMovieProviders(it.id)
+        return hasStreamingInRegion(providers, code)
+      } catch {
+        return false
+      }
+    })
+
+    const keep = new Set<number>()
+    candidates.forEach((it, i) => {
+      if (flags[i]) keep.add(it.id)
+    })
+    return items.filter((it) => {
+      const mt = it.media_type
+      if (mt === 'person') return false
+      return keep.has(it.id)
+    })
   }
 
   /** Trailers and other videos for a movie. */
@@ -648,29 +801,64 @@ export function useTmdb() {
   }
 
   /**
-   * Discover movies sorted by popularity with a minimum vote gate (Orbitra home rails).
-   *
-   * @param page - 1-based page index
+   * Build discover query bag from options (shared by movie / TV).
    */
-  function discoverMovies(page = 1): Promise<TmdbPagedResult<TmdbMediaItem>> {
-    return tmdb<TmdbPagedResult<TmdbMediaItem>>('discover/movie', {
-      sort_by: 'popularity.desc',
-      'vote_count.gte': 250,
+  function buildDiscoverQuery(
+    opts: DiscoverMediaOptions,
+    defaults: { sort_by: string; voteCountGte: number },
+  ): TmdbQuery {
+    const page = Math.max(1, opts.page ?? 1)
+    const q: TmdbQuery = {
+      sort_by: opts.sort_by ?? defaults.sort_by,
       page,
-    })
+    }
+    const voteGte = opts['vote_count.gte']
+    if (voteGte != null) {
+      q['vote_count.gte'] = voteGte
+    } else if (opts.with_watch_providers || opts.with_watch_monetization_types) {
+      q['vote_count.gte'] = 50
+    } else {
+      q['vote_count.gte'] = defaults.voteCountGte
+    }
+    if (opts['vote_average.gte'] != null) q['vote_average.gte'] = opts['vote_average.gte']
+    if (opts.with_genres) q.with_genres = opts.with_genres
+    if (opts.with_watch_providers) q.with_watch_providers = opts.with_watch_providers
+    if (opts.watch_region) q.watch_region = String(opts.watch_region).toUpperCase()
+    if (opts.with_watch_monetization_types) {
+      q.with_watch_monetization_types = opts.with_watch_monetization_types
+    }
+    if (opts.primary_release_year != null) q.primary_release_year = opts.primary_release_year
+    if (opts.first_air_date_year != null) q.first_air_date_year = opts.first_air_date_year
+    return q
   }
 
   /**
-   * Discover TV sorted by popularity with a minimum vote gate.
-   *
-   * @param page - 1-based page index
+   * Discover movies (home rails + provider-filtered browse).
+   * Pass a number for legacy `discoverMovies(1)` or an options object.
    */
-  function discoverTv(page = 1): Promise<TmdbPagedResult<TmdbMediaItem>> {
-    return tmdb<TmdbPagedResult<TmdbMediaItem>>('discover/tv', {
-      sort_by: 'popularity.desc',
-      'vote_count.gte': 250,
-      page,
-    })
+  function discoverMovies(
+    pageOrOpts: number | DiscoverMediaOptions = 1,
+  ): Promise<TmdbPagedResult<TmdbMediaItem>> {
+    const opts: DiscoverMediaOptions =
+      typeof pageOrOpts === 'number' ? { page: pageOrOpts } : pageOrOpts || {}
+    return tmdb<TmdbPagedResult<TmdbMediaItem>>(
+      'discover/movie',
+      buildDiscoverQuery(opts, { sort_by: 'popularity.desc', voteCountGte: 250 }),
+    )
+  }
+
+  /**
+   * Discover TV (home rails + provider-filtered browse).
+   */
+  function discoverTv(
+    pageOrOpts: number | DiscoverMediaOptions = 1,
+  ): Promise<TmdbPagedResult<TmdbMediaItem>> {
+    const opts: DiscoverMediaOptions =
+      typeof pageOrOpts === 'number' ? { page: pageOrOpts } : pageOrOpts || {}
+    return tmdb<TmdbPagedResult<TmdbMediaItem>>(
+      'discover/tv',
+      buildDiscoverQuery(opts, { sort_by: 'popularity.desc', voteCountGte: 250 }),
+    )
   }
 
   /** External ids for a TV show (IMDB link on Information panel). */
@@ -705,6 +893,11 @@ export function useTmdb() {
     getMovie,
     getMovieCredits,
     getMovieProviders,
+    getTvProviders,
+    getWatchProviderList,
+    regionProviders,
+    hasStreamingInRegion,
+    filterStreamingOnly,
     getMovieVideos,
     getTv,
     getTvCredits,

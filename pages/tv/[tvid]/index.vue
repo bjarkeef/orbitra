@@ -15,9 +15,21 @@
         :style="backdropImgPath"
       />
       <div class="detail-panel">
-        <div class="w-full gap-6 flex xl:block xl:w-1/3">
-          <Poster class="w-1/3 xl:w-full" :object="tv" mtype="tv" />
-          <Information class="w-2/3 xl:w-full" :object="tv" mtype="tv" />
+        <div class="w-full gap-6 flex flex-wrap xl:block xl:w-1/3">
+          <Poster class="w-1/3 xl:w-full basis-1/3" :object="tv" mtype="tv" />
+          <Information class="w-2/3 xl:w-full flex-1" :object="tv" mtype="tv" />
+          <div
+            v-if="providers?.results && Object.keys(providers.results).length"
+            class="section-card mt-0 xl:mt-6 hidden xl:block basis-full"
+          >
+            <h3 class="mb-1 text-2xl font-bold text-slate-100">Where to watch</h3>
+            <p class="text-xs text-slate-500 mb-4">Availability in your country (via TMDB)</p>
+            <MProviders :providers="providers" />
+          </div>
+          <div
+            v-else-if="extrasPending"
+            class="hidden xl:block mt-6 h-24 rounded-lg bg-slate-800/80 animate-pulse basis-full"
+          />
         </div>
         <div class="w-full xl:w-2/3 overflow-hidden min-w-0">
           <div class="flex gap-6">
@@ -33,7 +45,16 @@
             </div>
           </div>
 
-          <div v-if="creditsPending && !cast.length" class="section-card mt-6">
+          <div
+            v-if="providers?.results && Object.keys(providers.results).length"
+            class="section-card mt-6 xl:hidden"
+          >
+            <h3 class="mb-1 text-2xl font-bold text-slate-100">Where to watch</h3>
+            <p class="text-xs text-slate-500 mb-4">Availability in your country (via TMDB)</p>
+            <MProviders :providers="providers" />
+          </div>
+
+          <div v-if="extrasPending && !cast.length" class="section-card mt-6">
             <div class="h-6 w-20 rounded bg-slate-700/70 animate-pulse mb-4" />
             <div class="flex gap-3 overflow-hidden">
               <div v-for="n in 6" :key="n" class="shrink-0 w-20 aspect-poster rounded-md bg-slate-700/60 animate-pulse" />
@@ -90,7 +111,7 @@
 
 <script setup>
 const route = useRoute()
-const { getTv, getTvCredits, backdropStyle, imageUrl } = useTmdb()
+const { getTv, getTvCredits, getTvProviders, backdropStyle, imageUrl } = useTmdb()
 
 const id = computed(() => String(route.params.tvid))
 
@@ -106,19 +127,28 @@ const {
 )
 
 const {
-  data: credits,
-  pending: creditsPending,
+  data: extras,
+  pending: extrasPending,
 } = useLazyAsyncData(
-  () => `tv-credits-${id.value}`,
+  () => `tv-extras-${id.value}`,
   async () => {
-    const res = await getTvCredits(id.value).catch(() => ({ cast: [], crew: [] }))
-    return { cast: res.cast || [], crew: res.crew || [] }
+    const tvid = id.value
+    const [credits, providers] = await Promise.all([
+      getTvCredits(tvid).catch(() => ({ cast: [], crew: [] })),
+      getTvProviders(tvid).catch(() => null),
+    ])
+    return {
+      cast: credits?.cast || [],
+      crew: credits?.crew || [],
+      providers,
+    }
   },
   { watch: [id] },
 )
 
-const cast = computed(() => credits.value?.cast || [])
-const crew = computed(() => credits.value?.crew || [])
+const cast = computed(() => extras.value?.cast || [])
+const crew = computed(() => extras.value?.crew || [])
+const providers = computed(() => extras.value?.providers || null)
 const backdropImgPath = computed(() => backdropStyle(tv.value?.backdrop_path))
 const errorMsg = computed(() => {
   const e = error.value
