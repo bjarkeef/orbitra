@@ -22,7 +22,8 @@
             v-if="providers?.results && Object.keys(providers.results).length"
             class="section-card mt-0 xl:mt-6 hidden xl:block basis-full"
           >
-            <h3 class="mb-4 text-2xl font-bold text-slate-100">Where to watch</h3>
+            <h3 class="mb-1 text-2xl font-bold text-slate-100">Where to watch</h3>
+            <p class="text-xs text-slate-500 mb-4">Availability in your country (via TMDB)</p>
             <MProviders :providers="providers" />
           </div>
           <div
@@ -48,7 +49,8 @@
             v-if="providers?.results && Object.keys(providers.results).length"
             class="section-card mt-6 xl:hidden"
           >
-            <h3 class="mb-4 text-2xl font-bold text-slate-100">Where to watch</h3>
+            <h3 class="mb-1 text-2xl font-bold text-slate-100">Where to watch</h3>
+            <p class="text-xs text-slate-500 mb-4">Availability in your country (via TMDB)</p>
             <MProviders :providers="providers" />
           </div>
 

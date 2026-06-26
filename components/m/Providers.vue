@@ -1,6 +1,6 @@
 <template>
   <div v-if="hasAnyRegion" class="watch-providers">
-    <div class="flex flex-wrap items-center gap-3 mb-4">
+    <div class="flex flex-wrap items-center gap-3 mb-3">
       <label class="text-sm text-slate-400 shrink-0" for="watch-region-select">
         Country
       </label>
@@ -20,31 +20,43 @@
       </select>
     </div>
 
+    <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+      Logos show where this title is listed (stream, rent, or buy). TMDB does not provide direct links into Netflix or other apps — use the button below to open TMDB’s watch page (JustWatch data) for this country.
+    </p>
+
     <div v-if="!regionData" class="text-sm text-slate-500 py-2">
       No streaming, rental, or purchase options listed for {{ regionLabel(activeRegion) }}.
     </div>
 
     <template v-else>
+      <a
+        v-if="watchPageUrl"
+        :href="watchPageUrl"
+        target="_blank"
+        rel="noopener nofollow"
+        class="btn-secondary inline-flex mb-5 text-sm"
+      >
+        Open watch options on TMDB
+        <span class="sr-only"> (opens in a new tab; powered by JustWatch)</span>
+      </a>
+
       <div v-if="streamList.length" class="mb-4">
         <div class="flex items-baseline gap-2 mb-2">
           <h4 class="text-sm font-semibold text-slate-200">Stream</h4>
-          <span class="text-xs text-slate-500">Included with subscription</span>
+          <span class="text-xs text-slate-500">Subscription (availability only)</span>
         </div>
-        <div class="flex flex-wrap gap-3">
-          <a
+        <ul class="flex flex-wrap gap-3 list-none p-0 m-0" aria-label="Streaming services">
+          <li
             v-for="p in streamList"
             :key="'s-' + p.provider_id"
-            :href="regionData.link || '#'"
-            target="_blank"
-            rel="noopener nofollow"
-            class="group flex flex-col items-center gap-1 w-16"
-            :title="p.provider_name"
+            class="flex flex-col items-center gap-1 w-16"
+            :title="availabilityTitle(p.provider_name, 'stream')"
           >
             <img
               v-if="p.logo_path"
               :src="logoSrc(p.logo_path)"
               :alt="p.provider_name"
-              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700"
               loading="lazy"
             />
             <span
@@ -52,8 +64,8 @@
               class="w-12 h-12 rounded-lg bg-slate-700 flex items-center justify-center text-[10px] text-center text-slate-300 px-0.5"
             >{{ p.provider_name }}</span>
             <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
-          </a>
-        </div>
+          </li>
+        </ul>
       </div>
 
       <div v-if="freeList.length" class="mb-4">
@@ -61,74 +73,65 @@
           <h4 class="text-sm font-semibold text-slate-200">Free</h4>
           <span class="text-xs text-slate-500">Ad-supported or free tier</span>
         </div>
-        <div class="flex flex-wrap gap-3">
-          <a
+        <ul class="flex flex-wrap gap-3 list-none p-0 m-0" aria-label="Free services">
+          <li
             v-for="p in freeList"
             :key="'f-' + p.provider_id"
-            :href="regionData.link || '#'"
-            target="_blank"
-            rel="noopener nofollow"
-            class="group flex flex-col items-center gap-1 w-16"
-            :title="p.provider_name"
+            class="flex flex-col items-center gap-1 w-16"
+            :title="availabilityTitle(p.provider_name, 'free')"
           >
             <img
               v-if="p.logo_path"
               :src="logoSrc(p.logo_path)"
               :alt="p.provider_name"
-              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700"
               loading="lazy"
             />
             <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
-          </a>
-        </div>
+          </li>
+        </ul>
       </div>
 
       <div v-if="rentList.length" class="mb-4">
         <h4 class="text-sm font-semibold text-slate-200 mb-2">Rent</h4>
-        <div class="flex flex-wrap gap-3">
-          <a
+        <ul class="flex flex-wrap gap-3 list-none p-0 m-0" aria-label="Rental services">
+          <li
             v-for="p in rentList"
             :key="'r-' + p.provider_id"
-            :href="regionData.link || '#'"
-            target="_blank"
-            rel="noopener nofollow"
-            class="group flex flex-col items-center gap-1 w-16"
-            :title="p.provider_name"
+            class="flex flex-col items-center gap-1 w-16"
+            :title="availabilityTitle(p.provider_name, 'rent')"
           >
             <img
               v-if="p.logo_path"
               :src="logoSrc(p.logo_path)"
               :alt="p.provider_name"
-              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700"
               loading="lazy"
             />
             <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
-          </a>
-        </div>
+          </li>
+        </ul>
       </div>
 
       <div v-if="buyList.length" class="mb-4">
         <h4 class="text-sm font-semibold text-slate-200 mb-2">Buy</h4>
-        <div class="flex flex-wrap gap-3">
-          <a
+        <ul class="flex flex-wrap gap-3 list-none p-0 m-0" aria-label="Purchase services">
+          <li
             v-for="p in buyList"
             :key="'b-' + p.provider_id"
-            :href="regionData.link || '#'"
-            target="_blank"
-            rel="noopener nofollow"
-            class="group flex flex-col items-center gap-1 w-16"
-            :title="p.provider_name"
+            class="flex flex-col items-center gap-1 w-16"
+            :title="availabilityTitle(p.provider_name, 'buy')"
           >
             <img
               v-if="p.logo_path"
               :src="logoSrc(p.logo_path)"
               :alt="p.provider_name"
-              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700 group-hover:ring-indigo-400 group-hover:scale-105 transition-all"
+              class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700"
               loading="lazy"
             />
             <span class="text-[10px] text-slate-400 text-center line-clamp-2 leading-tight">{{ p.provider_name }}</span>
-          </a>
-        </div>
+          </li>
+        </ul>
       </div>
 
       <p
@@ -139,8 +142,8 @@
       </p>
     </template>
 
-    <p class="text-xs text-slate-600 mt-4">
-      Availability data by JustWatch. Links open JustWatch for this title.
+    <p class="text-xs text-slate-600 mt-4 leading-relaxed">
+      Availability via TMDB / JustWatch. The button opens TMDB’s watch page for this title — not the streaming app itself.
     </p>
   </div>
   <p v-else class="text-sm text-slate-500">No watch providers available.</p>
@@ -188,6 +191,11 @@ const activeRegion = computed(() => {
 
 const regionData = computed(() => resultsMap.value[activeRegion.value] || null)
 
+const watchPageUrl = computed(() => {
+  const link = regionData.value?.link
+  return link && String(link).trim() ? String(link).trim() : ''
+})
+
 function sortProviders(list) {
   if (!Array.isArray(list)) return []
   return list.slice().sort((a, b) => {
@@ -211,6 +219,18 @@ function regionLabel(code) {
 
 function logoSrc(path) {
   return imageUrl(path, 'w185')
+}
+
+function availabilityTitle(name, kind) {
+  const verb =
+    kind === 'stream'
+      ? 'Listed for streaming on'
+      : kind === 'free'
+        ? 'Listed as free on'
+        : kind === 'rent'
+          ? 'Listed for rent on'
+          : 'Listed for purchase on'
+  return `${verb} ${name} (open TMDB watch page for links)`
 }
 
 function onRegionChange(ev) {
