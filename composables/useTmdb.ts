@@ -225,6 +225,11 @@ interface ClientCacheEntry {
 const clientGetCache = new Map<string, ClientCacheEntry>()
 /** Coalesce concurrent identical GETs into one network request. */
 const clientInflight = new Map<string, Promise<unknown>>()
+/**
+ * Bumped on {@link clearTmdbClientCache} so in-flight GETs cannot repopulate
+ * the cache after an intentional wipe (logout / forced refresh).
+ */
+let clientCacheGeneration = 0
 
 /**
  * Normalize / validate a TMDB resource path for the proxy URL.
@@ -268,6 +273,54 @@ function requireId(id: string | number, label = 'id'): string {
 }
 
 /**
+ * Assert a non-negative integer season number (0 = specials on TMDB).
+ * Rejects path-like values (`1/credits`) that would smuggle extra segments.
+ *
+ * @param value - Season number from route params or callers
+ * @param label - Field name for error messages
+ * @returns Decimal string of the integer (no leading junk)
+ * @throws {Error} When missing, non-integer, or negative
+ */
+function requireSeasonNum(value: string | number, label = 'season number'): string {
+  if (value === null || value === undefined || value === '') {
+    throw new Error(`TMDB ${label} is required`)
+  }
+  const raw = String(value).trim()
+  // Digits only — blocks `/`, `\`, scientific notation, decimals, traversal
+  if (!/^\d+$/.test(raw)) {
+    throw new Error(`TMDB ${label} must be a non-negative integer`)
+  }
+  const n = Number(raw)
+  if (!Number.isInteger(n) || n < 0) {
+    throw new Error(`TMDB ${label} must be a non-negative integer`)
+  }
+  return String(n)
+}
+
+/**
+ * Assert a positive integer episode number within a season.
+ *
+ * @param value - Episode number from route params or callers
+ * @param label - Field name for error messages
+ * @returns Decimal string of the integer
+ * @throws {Error} When missing, non-integer, or less than 1
+ */
+function requireEpisodeNum(value: string | number, label = 'episode number'): string {
+  if (value === null || value === undefined || value === '') {
+    throw new Error(`TMDB ${label} is required`)
+  }
+  const raw = String(value).trim()
+  if (!/^\d+$/.test(raw)) {
+    throw new Error(`TMDB ${label} must be a positive integer`)
+  }
+  const n = Number(raw)
+  if (!Number.isInteger(n) || n < 1) {
+    throw new Error(`TMDB ${label} must be a positive integer`)
+  }
+  return String(n)
+}
+
+/**
  * Stable client cache key for a GET (path + sorted query, no secrets).
  *
  * @param path - Normalized TMDB path
@@ -303,8 +356,10 @@ function writeClientCache(key: string, data: unknown, ttlMs: number): void {
 
 /**
  * Drop all client-side GET entries (useful after logout / forced refresh).
+ * In-flight requests started before this call will not write into the new generation.
  */
 export function clearTmdbClientCache(): void {
+  clientCacheGeneration += 1
   clientGetCache.clear()
   clientInflight.clear()
 }
@@ -366,10 +421,14 @@ export function useTmdb() {
       return pendingExisting
     }
 
+    const generationAtStart = clientCacheGeneration
     const pending = (async (): Promise<T> => {
       try {
         const body = await $fetch<T>(pathUrl(safePath), { query: safeQuery })
-        writeClientCache(key, body, CLIENT_GET_TTL_MS)
+        // Skip write if cache was cleared while this request was in flight
+        if (generationAtStart === clientCacheGeneration) {
+          writeClientCache(key, body, CLIENT_GET_TTL_MS)
+        }
         return body
       } catch (err: unknown) {
         // Preserve proxy / H3 errors; wrap unknown failures for UI consumption
@@ -499,7 +558,9 @@ export function useTmdb() {
     tvId: string | number,
     seasonNum: string | number,
   ): Promise<TmdbSeason> {
-    return tmdb<TmdbSeason>(`tv/${requireId(tvId, 'tv id')}/season/${seasonNum}`)
+    return tmdb<TmdbSeason>(
+      `tv/${requireId(tvId, 'tv id')}/season/${requireSeasonNum(seasonNum)}`,
+    )
   }
 
   /**
@@ -513,7 +574,7 @@ export function useTmdb() {
     seasonNum: string | number,
   ): Promise<TmdbCredits> {
     return tmdb<TmdbCredits>(
-      `tv/${requireId(tvId, 'tv id')}/season/${seasonNum}/credits`,
+      `tv/${requireId(tvId, 'tv id')}/season/${requireSeasonNum(seasonNum)}/credits`,
     )
   }
 
@@ -530,7 +591,7 @@ export function useTmdb() {
     episodeNum: string | number,
   ): Promise<TmdbEpisode> {
     return tmdb<TmdbEpisode>(
-      `tv/${requireId(tvId, 'tv id')}/season/${seasonNum}/episode/${episodeNum}`,
+      `tv/${requireId(tvId, 'tv id')}/season/${requireSeasonNum(seasonNum)}/episode/${requireEpisodeNum(episodeNum)}`,
     )
   }
 
