@@ -1,6 +1,6 @@
 export default {
+  // Knip auto-detects nuxt.config.ts / app.vue — list only extra app entry points.
   entry: [
-    'nuxt.config.ts',
     'pages/**/*.{vue,ts}',
     'layouts/**/*.{vue,ts}',
     'plugins/**/*.{ts,js}',
@@ -8,7 +8,6 @@ export default {
     'composables/**/*.{ts,js}',
     'utils/**/*.ts',
     'components/**/*.vue',
-    'app.vue',
     'tailwind.config.js',
   ],
   project: [
@@ -17,6 +16,8 @@ export default {
     '!.nuxt/**',
     '!.output/**',
   ],
+  // Dev/docs helpers invoked manually (not imported by the app).
+  ignoreFiles: ['scripts/**'],
   ignoreDependencies: [
     '@nuxt/devtools',
     'sass',

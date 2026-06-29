@@ -43,9 +43,10 @@ Public portfolio repo: https://github.com/bjarkeef/orbitra
 - [ ] Lazy images / optional `@nuxt/image`
 
 ### Platform (when convenient)
-- [ ] Bump Nuxt 3 to a current supported minor (deliberate, not churn)
+- [x] Nuxt **3.21** line (`package.json` `^3.21.0`) — still Nuxt 3, not Nuxt 4
+- [ ] Optional deliberate upgrade to **Nuxt 4** (separate migration, not just a version bump)
 - [ ] Optional Playwright smoke (home → search → movie → person → graph tab)
-- [ ] README screenshots / short orbit-graph GIF for the portfolio storefront
+- [x] README screenshots + architecture SVG for the portfolio storefront
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Map the orbits of film & television.**
 
-Open-source **movie & TV discovery** app — [Nuxt 3](https://nuxt.com/), [Tailwind CSS](https://tailwindcss.com/), [TMDB API](https://www.themoviedb.org/). Built as a public portfolio / learning repo, not a commercial product.
+Open-source **movie & TV discovery** app — [Nuxt 3](https://nuxt.com/) (currently **3.21**), [Tailwind CSS](https://tailwindcss.com/), [TMDB API](https://www.themoviedb.org/). Built as a public portfolio / learning repo, not a commercial product.
 
 [![CI](https://github.com/bjarkeef/orbitra/actions/workflows/ci.yml/badge.svg)](https://github.com/bjarkeef/orbitra/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-slate.svg)](./LICENSE)
