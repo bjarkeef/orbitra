@@ -22,7 +22,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     tmdbAPI: process.env.TMDB_API,
-  }, compatibilityDate: '2025-01-01',
+  },
+
+  // Nuxt 4 defaults; root-level pages/components remain supported (no app/ move required).
+  compatibilityDate: '2025-07-15',
 
   nitro: {
     // Prevent accidental PWA/service-worker caching in dev previews.

@@ -1,6 +1,6 @@
 # Contributing to Orbitra
 
-Thanks for considering a contribution. Orbitra is a portfolio / learning **Nuxt 3** app (3.21 line) — keep changes focused and consistent with the existing stack.
+Thanks for considering a contribution. Orbitra is a portfolio / learning **Nuxt 4** app — keep changes focused and consistent with the existing stack.
 
 ## Prerequisites
 

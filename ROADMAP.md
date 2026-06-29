@@ -43,8 +43,7 @@ Public portfolio repo: https://github.com/bjarkeef/orbitra
 - [ ] Lazy images / optional `@nuxt/image`
 
 ### Platform (when convenient)
-- [x] Nuxt **3.21** line (`package.json` `^3.21.0`) — still Nuxt 3, not Nuxt 4
-- [ ] Optional deliberate upgrade to **Nuxt 4** (separate migration, not just a version bump)
+- [x] **Nuxt 4** (`nuxt@^4.4`, compatibilityDate `2025-07-15`) — root-level `pages/` / `components/` kept (no forced `app/` move)
 - [ ] Optional Playwright smoke (home → search → movie → person → graph tab)
 - [x] README screenshots + architecture SVG for the portfolio storefront
 
@@ -108,3 +107,4 @@ Prefer implementing **append_to_response + one new home rail (upcoming / on the 
 | 2026-06-27 | Phase 1/2 verified; collections, person pages on main |
 | 2026-06-28 | TS migration, ESLint, CI; roadmap trimmed |
 | 2026-06-29 | Removed adult preference / age gate / session APIs; mainstream-only proxy; README + CONTRIBUTING portfolio pass |
+| 2026-06-29 | Clean public history (orphan root); upgrade to Nuxt 4.4 |

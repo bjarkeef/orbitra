@@ -115,10 +115,6 @@ export default {
     this.teardownSim()
     window.removeEventListener('resize', this.onResize)
   },
-  beforeUnmount() {
-    this.teardownSim()
-    window.removeEventListener('resize', this.onResize)
-  },
   methods: {
     async loadGraph() {
       this.teardownSim()
