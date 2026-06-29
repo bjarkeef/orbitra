@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 280" role="img" aria-labelledby="title desc">
+  <title id="title">Orbitra architecture</title>
+  <desc id="desc">Browser talks to Nuxt and Nitro; Nitro proxies TMDB and builds the actor orbit graph.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect width="920" height="280" rx="16" fill="url(#bg)"/>
+  <text x="32" y="36" fill="#c7d2fe" font-family="Segoe UI, system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="0.08em">ORBITRA · REQUEST FLOW</text>
+
+  <rect x="32" y="64" width="160" height="88" rx="12" fill="#1e293b" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="112" y="102" text-anchor="middle" fill="#e2e8f0" font-family="Segoe UI, system-ui, sans-serif" font-size="15" font-weight="700">Browser</text>
+  <text x="112" y="124" text-anchor="middle" fill="#94a3b8" font-family="Segoe UI, system-ui, sans-serif" font-size="12">Vue 3 UI · canvas</text>
+
+  <line x1="192" y1="108" x2="248" y2="108" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="256" y="64" width="200" height="88" rx="12" fill="#1e293b" stroke="#818cf8" stroke-width="1.5"/>
+  <text x="356" y="102" text-anchor="middle" fill="#e2e8f0" font-family="Segoe UI, system-ui, sans-serif" font-size="15" font-weight="700">Nuxt 3</text>
+  <text x="356" y="124" text-anchor="middle" fill="#94a3b8" font-family="Segoe UI, system-ui, sans-serif" font-size="12">pages · composables</text>
+
+  <line x1="456" y1="108" x2="512" y2="108" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="520" y="48" width="220" height="120" rx="12" fill="#1e293b" stroke="#a5b4fc" stroke-width="1.5"/>
+  <text x="630" y="78" text-anchor="middle" fill="#e2e8f0" font-family="Segoe UI, system-ui, sans-serif" font-size="15" font-weight="700">Nitro (server)</text>
+  <text x="630" y="100" text-anchor="middle" fill="#c7d2fe" font-family="ui-monospace, Consolas, monospace" font-size="11">/api/tmdb/*</text>
+  <text x="630" y="118" text-anchor="middle" fill="#c7d2fe" font-family="ui-monospace, Consolas, monospace" font-size="11">/api/actors/:id/graph</text>
+  <text x="630" y="136" text-anchor="middle" fill="#c7d2fe" font-family="ui-monospace, Consolas, monospace" font-size="11">/api/collections</text>
+  <text x="630" y="154" text-anchor="middle" fill="#64748b" font-family="Segoe UI, system-ui, sans-serif" font-size="11">key never leaves server</text>
+
+  <line x1="740" y1="108" x2="796" y2="108" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="804" y="64" width="88" height="88" rx="12" fill="#312e81" stroke="#818cf8" stroke-width="1.5"/>
+  <text x="848" y="108" text-anchor="middle" fill="#e0e7ff" font-family="Segoe UI, system-ui, sans-serif" font-size="14" font-weight="700">TMDB</text>
+  <text x="848" y="128" text-anchor="middle" fill="#a5b4fc" font-family="Segoe UI, system-ui, sans-serif" font-size="11">v3 API</text>
+
+  <text x="32" y="220" fill="#94a3b8" font-family="Segoe UI, system-ui, sans-serif" font-size="12">Orbit graph topology is built on Nitro; the browser only renders nodes and edges.</text>
+  <text x="32" y="242" fill="#64748b" font-family="Segoe UI, system-ui, sans-serif" font-size="12">Upstream include_adult is always forced false · client cannot pass api_key.</text>
+</svg>

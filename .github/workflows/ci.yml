@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # ESLint 10 / eslint-flat-config-utils need Object.groupBy (Node 21+)
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Prepare Nuxt (types + ESLint config)
+        run: npx nuxi prepare
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Dead code (knip)
+        run: npm run knip:ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+        env:
+          TMDB_API: ci-placeholder-key
