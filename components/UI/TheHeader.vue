@@ -33,6 +33,7 @@ const links = [
   { to: '/', label: 'Home' },
   { to: '/100', label: 'Top 100' },
   { to: '/discover', label: 'Discover' },
+  { to: '/orbit', label: 'Orbit' },
   { to: '/collections', label: 'Collections' },
   { to: '/search', label: 'Search' },
   { to: '/settings', label: 'Settings' },

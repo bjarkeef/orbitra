@@ -33,19 +33,22 @@ Public portfolio repo: https://github.com/bjarkeef/orbitra
 ## Next (portfolio-friendly)
 
 ### Orbit graph UX (signature feature)
-- [ ] Mobile defaults for `maxProjects` / co-star caps in the UI
-- [ ] Deeper selected-node insights panel
-- [ ] Optional split of large `ActorGraph.vue` (data vs canvas) if it keeps growing
+- [x] Mobile defaults for `maxProjects` / co-star caps in the UI
+- [x] Deeper selected-node insights panel (+ top collaborators from server)
+- [x] Split force-layout into `utils/orbitSim.ts`; canvas stays in `ActorGraph.vue`
 
 ### Product polish (small wins)
-- [ ] Episode prev/next within a season
-- [ ] Watch providers: clearer stream / rent / buy grouping
-- [ ] Lazy images / optional `@nuxt/image`
+- [x] Episode prev/next within a season
+- [x] Watch providers: clearer stream / rent / buy grouping
+- [x] Lazy images via `@nuxt/image` (`NuxtImg` on posters / heroes)
 
 ### Platform (when convenient)
 - [x] **Nuxt 4** (`nuxt@^4.4`, compatibilityDate `2025-07-15`) — root-level `pages/` / `components/` kept (no forced `app/` move)
 - [ ] Optional Playwright smoke (home → search → movie → person → graph tab)
 - [x] README screenshots + architecture SVG for the portfolio storefront
+- [x] Genre-first Discover filters (`genre/{media}/list` + `with_genres`)
+- [x] Trailer embeds from `append_to_response` videos (movie + TV)
+- [x] Home rails: upcoming / on the air / airing today
 
 ---
 
@@ -108,3 +111,4 @@ Prefer implementing **append_to_response + one new home rail (upcoming / on the 
 | 2026-06-28 | TS migration, ESLint, CI; roadmap trimmed |
 | 2026-06-29 | Removed adult preference / age gate / session APIs; mainstream-only proxy; README + CONTRIBUTING portfolio pass |
 | 2026-06-29 | Clean public history (orphan root); upgrade to Nuxt 4.4 |
+| 2026-07-10 | Genres, trailers, airing today, orbit insights/mobile caps, @nuxt/image, provider grouping polish |

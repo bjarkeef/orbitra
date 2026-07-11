@@ -67,7 +67,7 @@
           </span>
         </div>
       </div>
-      <p>
+      <p v-if="imdbId && imdbHref !== '#'">
         <a
           target="_blank"
           rel="noopener nofollow"
@@ -111,15 +111,6 @@ const props = defineProps<{
   mtype?: string
 }>()
 
-const extIdsTV = ref<any>(null)
-const fetching = ref(false)
-
-const { getTvExternalIds } = useTmdb()
-
-onMounted(() => {
-  if (props.mtype === 'tv') void getExternalIdsTV()
-})
-
 function convertTime(num: number) {
   const hours = Math.floor(num / 60)
   const minutes = num % 60
@@ -139,28 +130,18 @@ function calculateAge(birthDate: string | Date, otherDate: Date) {
   return years
 }
 
-const imdbHref = computed(() => {
-  if (props.mtype === 'person') return `https://www.imdb.com/name/${props.object.imdb_id}`
-  if (props.mtype === 'movie') return `https://www.imdb.com/title/${props.object.imdb_id}`
+/** Prefer append_to_response external_ids on TV; movie/person use imdb_id on the detail. */
+const imdbId = computed(() => {
   if (props.mtype === 'tv') {
-    if (extIdsTV.value && !fetching.value) {
-      return `https://www.imdb.com/title/${extIdsTV.value.imdb_id}`
-    }
-    return '#'
+    return props.object?.external_ids?.imdb_id || props.object?.imdb_id || null
   }
-  return '#'
+  return props.object?.imdb_id || null
 })
 
-async function getExternalIdsTV() {
-  fetching.value = true
-  try {
-    extIdsTV.value = await getTvExternalIds(props.object.id)
-  }
-  catch {
-    extIdsTV.value = null
-  }
-  finally {
-    fetching.value = false
-  }
-}
+const imdbHref = computed(() => {
+  const id = imdbId.value
+  if (!id) return '#'
+  if (props.mtype === 'person') return `https://www.imdb.com/name/${id}`
+  return `https://www.imdb.com/title/${id}`
+})
 </script>

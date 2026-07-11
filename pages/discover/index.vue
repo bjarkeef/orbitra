@@ -96,6 +96,61 @@
           </div>
         </div>
 
+        <!-- Genre (TMDB genre list for current media) -->
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Genre
+              <span class="normal-case font-normal text-slate-500 tracking-normal ml-1">
+                — {{ selectedGenreName || 'all' }}
+              </span>
+            </p>
+            <button
+              v-if="selectedGenreId"
+              type="button"
+              class="text-xs font-semibold text-indigo-300 hover:text-indigo-200"
+              @click="clearGenre"
+            >
+              Clear
+            </button>
+          </div>
+          <div v-if="genresPending" class="flex flex-wrap gap-2">
+            <div
+              v-for="n in 8"
+              :key="n"
+              class="h-8 w-20 rounded-full bg-slate-800/80 animate-pulse"
+            />
+          </div>
+          <p v-else-if="genreError" class="text-sm text-slate-500">
+            {{ genreError }}
+            <button type="button" class="btn-ghost ml-2" @click="refreshGenres()">Retry</button>
+          </p>
+          <div v-else class="flex flex-wrap gap-2" role="listbox" aria-label="Genres">
+            <button
+              type="button"
+              role="option"
+              :aria-selected="!selectedGenreId"
+              class="pill"
+              :class="!selectedGenreId ? 'pill-active' : 'pill-idle'"
+              @click="clearGenre"
+            >
+              All genres
+            </button>
+            <button
+              v-for="g in genreList"
+              :key="g.id"
+              type="button"
+              role="option"
+              :aria-selected="selectedGenreId === g.id"
+              class="pill"
+              :class="selectedGenreId === g.id ? 'pill-active' : 'pill-idle'"
+              @click="toggleGenre(g)"
+            >
+              {{ g.name }}
+            </button>
+          </div>
+        </div>
+
         <!-- Compact service logos (expand for full list) -->
         <div>
           <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -192,6 +247,7 @@
               <template v-else>Results</template>
               · {{ watchRegionLabel }}
               · {{ monetizationLabel }}
+              · {{ selectedGenreName || 'All genres' }}
               · {{ selectedProviderName || 'All services' }}
               · {{ sortLabel }}
             </p>
@@ -239,9 +295,17 @@
         >
           <p class="text-lg text-slate-300 font-medium">No titles match these filters</p>
           <p class="mt-2 text-sm text-slate-500 max-w-md mx-auto">
-            Try <strong class="text-slate-400">All</strong> services, <strong class="text-slate-400">Any</strong> availability, or another region.
+            Try <strong class="text-slate-400">All</strong> genres/services, <strong class="text-slate-400">Any</strong> availability, or another region.
           </p>
           <div class="mt-5 flex flex-wrap justify-center gap-3">
+            <button
+              v-if="selectedGenreId"
+              type="button"
+              class="btn-secondary !bg-slate-800"
+              @click="clearGenre"
+            >
+              All genres
+            </button>
             <button
               v-if="selectedProviderId"
               type="button"
@@ -277,6 +341,7 @@ const {
   discoverMovies,
   discoverTv,
   getWatchProviderList,
+  getGenreList,
   imageUrl,
 } = useTmdb()
 
@@ -314,6 +379,9 @@ const sortBy = ref('popularity.desc')
 /** Default: all services (null). */
 const selectedProviderId = ref<number | null>(null)
 const selectedProviderName = ref('')
+/** Default: all genres (null). */
+const selectedGenreId = ref<number | null>(null)
+const selectedGenreName = ref('')
 const page = ref(1)
 const loadingMore = ref(false)
 /** Collapsed row: logos only; expand for the full catalogue. */
@@ -351,6 +419,29 @@ const {
   },
   { watch: [media, watchRegion] },
 )
+
+const {
+  data: genreData,
+  pending: genresPending,
+  error: genreErr,
+  refresh: refreshGenres,
+} = useLazyAsyncData(
+  () => `genres-${media.value}`,
+  async () => {
+    const res = await getGenreList(media.value)
+    return (res.genres || []).slice().sort((a, b) =>
+      String(a.name).localeCompare(String(b.name)),
+    )
+  },
+  { watch: [media] },
+)
+
+const genreList = computed(() => genreData.value || [])
+const genreError = computed(() => {
+  const e = genreErr.value
+  if (!e) return null
+  return e.statusMessage || e.message || 'Could not load genres'
+})
 
 const providerList = computed(() => providerData.value || [])
 /** Keep selected service visible even when collapsed. */
@@ -393,6 +484,9 @@ function buildDiscoverOpts(pageNum: number): Record<string, string | number> {
       opts.with_watch_monetization_types = ANY_MONETIZATION
     }
   }
+  if (selectedGenreId.value != null) {
+    opts.with_genres = String(selectedGenreId.value)
+  }
 
   if (media.value === 'tv' && sortBy.value === 'primary_release_date.desc') {
     opts.sort_by = 'first_air_date.desc'
@@ -405,7 +499,7 @@ function buildDiscoverOpts(pageNum: number): Record<string, string | number> {
 
 const discoverKey = computed(
   () =>
-    `discover-${media.value}-${watchRegion.value}-${monetization.value}-${selectedProviderId.value || 'all'}-${sortBy.value}`,
+    `discover-${media.value}-${watchRegion.value}-${monetization.value}-${selectedProviderId.value || 'all'}-${selectedGenreId.value || 'all'}-${sortBy.value}`,
 )
 
 const {
@@ -463,8 +557,24 @@ function clearProvider() {
   selectedProviderName.value = ''
 }
 
+function toggleGenre(g: { id: number, name?: string }) {
+  if (selectedGenreId.value === g.id) {
+    clearGenre()
+  }
+  else {
+    selectedGenreId.value = g.id
+    selectedGenreName.value = g.name || ''
+  }
+}
+
+function clearGenre() {
+  selectedGenreId.value = null
+  selectedGenreName.value = ''
+}
+
 watch(media, () => {
   clearProvider()
+  clearGenre()
   providersExpanded.value = false
 })
 

@@ -9,6 +9,8 @@ export default {
     'utils/**/*.ts',
     'components/**/*.vue',
     'tailwind.config.js',
+    // Manual tooling (npm scripts)
+    'scripts/**/*.{mjs,ts,js}',
   ],
   project: [
     '**/*.{js,cjs,mjs,jsx,ts,cts,mts,tsx,vue}',
@@ -16,8 +18,7 @@ export default {
     '!.nuxt/**',
     '!.output/**',
   ],
-  // Dev/docs helpers invoked manually (not imported by the app).
-  ignoreFiles: ['scripts/**'],
+  ignoreFiles: [],
   ignoreDependencies: [
     '@nuxt/devtools',
     'sass',

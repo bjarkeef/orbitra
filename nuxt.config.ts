@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  modules: ['@nuxtjs/tailwindcss', '@nuxt/eslint', '@nuxt/image'],
 
-  modules: ['@nuxtjs/tailwindcss', '@nuxt/eslint'],
   devtools: { enabled: true },
 
   app: {
@@ -57,6 +57,21 @@ export default defineNuxtConfig({
         semi: false,
         quotes: 'single',
       },
+    },
+  },
+
+  // TMDB CDN + local assets; posters use NuxtImg with lazy loading.
+  image: {
+    domains: ['image.tmdb.org'],
+    format: ['webp'],
+    quality: 80,
+    screens: {
+      'xs': 320,
+      'sm': 640,
+      'md': 768,
+      'lg': 1024,
+      'xl': 1280,
+      '2xl': 1536,
     },
   },
 

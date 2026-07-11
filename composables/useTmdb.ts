@@ -644,6 +644,16 @@ export function useTmdb() {
     })
   }
 
+  /**
+   * Official genre catalogue for movie or TV discover filters.
+   * @param media - `movie` or `tv`
+   */
+  function getGenreList(
+    media: 'movie' | 'tv',
+  ): Promise<{ genres: TmdbGenre[] }> {
+    return tmdb<{ genres: TmdbGenre[] }>(`genre/${media}/list`)
+  }
+
   /** JustWatch-backed provider list for a movie (all regions; filter client-side by country). */
   function getMovieProviders(id: string | number): Promise<TmdbWatchProviders> {
     return tmdb<TmdbWatchProviders>(`movie/${requireId(id)}/watch/providers`)
@@ -777,10 +787,8 @@ export function useTmdb() {
     })
   }
 
-  /** Trailers and other videos for a movie. */
   /**
    * TV show detail by id.
-   *
    * @param id - TMDB TV id
    * @param extras - Extra query params
    */
@@ -803,9 +811,45 @@ export function useTmdb() {
     return tmdb<TmdbPagedResult<TmdbMediaItem>>('tv/on_the_air', { page })
   }
 
+  /** TV episodes airing today (region follows TMDB defaults). */
+  function getAiringToday(page = 1): Promise<TmdbPagedResult<TmdbMediaItem>> {
+    return tmdb<TmdbPagedResult<TmdbMediaItem>>('tv/airing_today', { page })
+  }
+
   /** Cast & crew for a TV show. */
   function getTvCredits(id: string | number): Promise<TmdbCredits> {
     return tmdb<TmdbCredits>(`tv/${requireId(id)}/credits`)
+  }
+
+  /**
+   * Pick the best YouTube trailer (or first YouTube video) from a videos blob.
+   * Prefers official Trailers, then Teasers, then any YouTube result.
+   */
+  function pickTrailer(
+    videos: TmdbVideos | null | undefined,
+  ): { key: string, name: string, type: string } | null {
+    const list = (videos?.results || []).filter(
+      v => v?.site === 'YouTube' && v?.key,
+    )
+    if (!list.length) return null
+    const rank = (v: { type?: string, official?: boolean }) => {
+      let score = 0
+      if (v.type === 'Trailer') score += 40
+      else if (v.type === 'Teaser') score += 20
+      else if (v.type === 'Clip') score += 10
+      if (v.official) score += 5
+      return score
+    }
+    const sorted = list.slice().sort((a, b) => rank(b) - rank(a))
+    const best = sorted[0]
+    return { key: best.key, name: best.name, type: best.type }
+  }
+
+  /** YouTube embed URL for a trailer key (privacy-enhanced host). */
+  function youtubeEmbedUrl(key: string): string {
+    const k = String(key || '').trim()
+    if (!k || !/^[\w-]{6,}$/.test(k)) return ''
+    return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(k)}`
   }
 
   /**
@@ -855,7 +899,6 @@ export function useTmdb() {
     )
   }
 
-  /** Person / actor profile. */
   /** Person + combined_credits, images, external_ids in one request. */
   function getPersonDetailed(id: string | number): Promise<TmdbPersonDetailed> {
     return tmdb<TmdbPersonDetailed>(`person/${requireId(id)}`, {
@@ -863,9 +906,6 @@ export function useTmdb() {
     })
   }
 
-  /** Mixed movie/TV credits for a person (filmography). */
-  /** IMDb / social external ids for a person. */
-  /** Profile / tagged stills for a person. */
   /**
    * OpenStreetMap search URL for a birthplace string (no API key; opens in new tab).
    */
@@ -1014,7 +1054,6 @@ export function useTmdb() {
     return tmdb<TmdbPagedResult<TmdbMediaItem>>('tv/top_rated', { page })
   }
 
-  /** Popular movies list. */
   /**
    * Build discover query bag from options (shared by movie / TV).
    */
@@ -1082,17 +1121,6 @@ export function useTmdb() {
     )
   }
 
-  /** External ids for a TV show (IMDB link on Information panel). */
-  function getTvExternalIds(id: string | number): Promise<TmdbExternalIds> {
-    return tmdb<TmdbExternalIds>(`tv/${requireId(id)}/external_ids`)
-  }
-
-  /**
-   * Credits for either a movie or TV title (orbit graph / shared helpers).
-   *
-   * @param mediaType - `movie` or `tv`
-   * @param id - TMDB title id
-   */
   /**
    * Public client API — only helpers used by pages/components (see knip).
    * Prefer *Detailed + append_to_response; providers stay separate (not appendable).
@@ -1111,10 +1139,14 @@ export function useTmdb() {
     regionProviders,
     hasStreamingInRegion,
     filterStreamingOnly,
+    getGenreList,
+    pickTrailer,
+    youtubeEmbedUrl,
     getTv,
     getTvDetailed,
     getTvCredits,
     getOnTheAir,
+    getAiringToday,
     getTvSeason,
     getTvSeasonCredits,
     getTvEpisode,
@@ -1131,7 +1163,6 @@ export function useTmdb() {
     getTopRatedTv,
     discoverMovies,
     discoverTv,
-    getTvExternalIds,
   } as const
 }
 

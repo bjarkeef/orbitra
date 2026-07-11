@@ -10,65 +10,44 @@
     </div>
 
     <div v-else-if="tv" class="title-page pb-16">
-      <header class="relative w-full overflow-hidden min-h-[20rem] sm:min-h-[24rem]">
-        <div class="absolute inset-0 bg-cover bg-center scale-105" :style="backdropImgPath" />
-        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/85 to-slate-900/40" />
-        <div class="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/55 to-transparent" />
-
-        <div class="relative max-w-screen-2xl mx-auto px-4 sm:px-6 pt-10 pb-12 flex flex-col sm:flex-row gap-8 items-end min-h-[20rem] sm:min-h-[24rem]">
-          <div class="shrink-0 w-36 sm:w-44 md:w-48 mx-auto sm:mx-0">
-            <div class="rounded-2xl overflow-hidden aspect-[2/3] bg-slate-900 ring-1 ring-white/10 shadow-2xl shadow-black/50">
-              <img
-                v-if="posterUrl"
-                :src="posterUrl"
-                :alt="tv.name"
-                class="w-full h-full object-cover"
-              />
-              <img
-                v-else
-                src="@/assets/img/noPoster.png"
-                alt=""
-                class="w-full h-full object-cover opacity-60"
-              />
-            </div>
-          </div>
-
-          <div class="flex-1 min-w-0 text-center sm:text-left pb-1">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-300/90">TV series</p>
-            <h1 class="mt-1 text-3xl sm:text-5xl font-black tracking-tight text-white drop-shadow-lg">
-              <template v-if="tv.name === tv.original_name || !tv.original_name">{{ tv.name }}</template>
-              <template v-else>{{ tv.name }} <span class="text-slate-400 font-bold text-2xl sm:text-3xl">({{ tv.original_name }})</span></template>
-            </h1>
-            <p v-if="tv.tagline" class="mt-2 text-sm sm:text-base italic text-slate-300/90 max-w-2xl">
-              {{ tv.tagline }}
-            </p>
-
-            <div class="mt-4 flex flex-wrap justify-center sm:justify-start gap-2">
-              <span
-                v-if="year"
-                class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
-              >{{ year }}</span>
-              <span
-                v-if="tv.vote_average"
-                class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
-              >★ {{ tv.vote_average.toFixed(1) }}<span v-if="tv.vote_count" class="text-slate-400"> · {{ formatVotes(tv.vote_count) }}</span></span>
-              <span
-                v-if="tv.status"
-                class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
-              >{{ tv.status }}</span>
-              <span
-                v-if="tv.number_of_seasons"
-                class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
-              >{{ tv.number_of_seasons }} season{{ tv.number_of_seasons === 1 ? '' : 's' }}</span>
-              <span
-                v-for="g in (tv.genres || []).slice(0, 4)"
-                :key="g.id"
-                class="rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-100 ring-1 ring-indigo-400/25"
-              >{{ g.name }}</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      <UITitleHero
+        kind-label="TV series"
+        :title="tv.name"
+        :tagline="tv.tagline"
+        :poster-url="posterUrl"
+        :backdrop-style="backdropImgPath"
+      >
+        <template #title>
+          <template v-if="tv.name === tv.original_name || !tv.original_name">{{ tv.name }}</template>
+          <template v-else>
+            {{ tv.name }}
+            <span class="text-slate-400 font-bold text-2xl sm:text-3xl">({{ tv.original_name }})</span>
+          </template>
+        </template>
+        <template #badges>
+          <span
+            v-if="year"
+            class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
+          >{{ year }}</span>
+          <span
+            v-if="tv.vote_average"
+            class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
+          >★ {{ tv.vote_average.toFixed(1) }}<span v-if="tv.vote_count" class="text-slate-400"> · {{ formatVotes(tv.vote_count) }}</span></span>
+          <span
+            v-if="tv.status"
+            class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
+          >{{ tv.status }}</span>
+          <span
+            v-if="tv.number_of_seasons"
+            class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-200 ring-1 ring-white/10"
+          >{{ tv.number_of_seasons }} season{{ tv.number_of_seasons === 1 ? '' : 's' }}</span>
+          <span
+            v-for="g in (tv.genres || []).slice(0, 4)"
+            :key="g.id"
+            class="rounded-full bg-indigo-500/20 px-3 py-1 text-xs font-medium text-indigo-100 ring-1 ring-indigo-400/25"
+          >{{ g.name }}</span>
+        </template>
+      </UITitleHero>
 
       <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 -mt-4 relative z-10 space-y-8">
         <section class="grid gap-6 lg:grid-cols-3 lg:items-start">
@@ -79,6 +58,8 @@
                 {{ tv.overview || 'No overview on TMDB for this show.' }}
               </p>
             </div>
+
+            <UITrailerSection :videos="videos" />
 
             <UIMediaGallery
               v-if="galleryImages"
@@ -219,6 +200,7 @@ const cast = computed(() => bundle.value?.detailed?.credits?.cast || [])
 const crew = computed(() => bundle.value?.detailed?.credits?.crew || [])
 const providers = computed(() => bundle.value?.providers || null)
 const galleryImages = computed(() => bundle.value?.detailed?.images || null)
+const videos = computed(() => bundle.value?.detailed?.videos || null)
 const recommendations = computed(() =>
   withMediaType(bundle.value?.detailed?.recommendations?.results, 'tv'),
 )

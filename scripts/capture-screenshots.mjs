@@ -22,34 +22,32 @@ const page = await browser.newPage({
   deviceScaleFactor: 1,
 })
 
-async function shot(name, url, { extraWait = 2000, clickOrbit = false } = {}) {
+async function shot(name, url, { extraWait = 2000, waitSelector = null } = {}) {
   console.log('->', name)
-  await page.goto(url, { waitUntil: 'networkidle', timeout: 90_000 })
-  await page.waitForTimeout(extraWait)
-  if (clickOrbit) {
-    const orbit = page.locator('button', { hasText: /^Orbit$/i })
-    if (await orbit.count()) {
-      await orbit.first().click()
-      await page.waitForTimeout(5000)
-      await orbit.first().scrollIntoViewIfNeeded()
-      await page.waitForTimeout(500)
-    }
+  // load (not networkidle): TMDB images / analytics keep the network busy
+  await page.goto(url, { waitUntil: 'load', timeout: 90_000 })
+  if (waitSelector) {
+    await page.waitForSelector(waitSelector, { timeout: 60_000 }).catch(() => {})
   }
+  await page.waitForTimeout(extraWait)
   await page.screenshot({ path: path.join(out, name) })
 }
 
-await shot('01-home.png', base + '/')
+await shot('01-home.png', base + '/', { waitSelector: 'text=Orbit spotlight' })
 await shot('02-discover.png', base + '/discover')
 
-await page.goto(base + '/search', { waitUntil: 'networkidle', timeout: 90_000 })
+await page.goto(base + '/search', { waitUntil: 'load', timeout: 90_000 })
 await page.waitForTimeout(800)
 await page.locator('input').first().fill('Inception')
 await page.waitForTimeout(3000)
 await page.screenshot({ path: path.join(out, '03-search.png') })
 
 await shot('04-movie.png', base + '/m/27205')
-await shot('05-person.png', base + '/actor/6193')
-await shot('06-person-orbit.png', base + '/actor/6193', { clickOrbit: true, extraWait: 2500 })
+await shot('05-person.png', base + '/actor/6193', { extraWait: 3000, waitSelector: '#orbit' })
+await shot('06-person-orbit.png', base + '/orbit/6193', {
+  extraWait: 8000,
+  waitSelector: 'canvas, .actor-graph',
+})
 await shot('07-collections.png', base + '/collections')
 
 await browser.close()

@@ -66,9 +66,15 @@
               </span>
             </div>
 
+            <div class="mt-5 flex flex-wrap justify-center sm:justify-start gap-2">
+              <a href="#orbit" class="btn-primary !py-1.5 !px-4 !text-xs">
+                Explore orbit
+              </a>
+            </div>
+
             <div
               v-if="externalLinks.length"
-              class="mt-5 flex flex-wrap justify-center sm:justify-start gap-2"
+              class="mt-3 flex flex-wrap justify-center sm:justify-start gap-2"
             >
               <a
                 v-for="link in externalLinks"
@@ -87,6 +93,20 @@
       </header>
 
       <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 -mt-4 relative z-10 space-y-8">
+        <!-- Orbit first (signature feature) -->
+        <section v-if="person" id="orbit" class="section-card">
+          <ClientOnly>
+            <ActorOrbitStage
+              :person-id="person.id"
+              :person-name="person.name"
+              :sync-route="true"
+            />
+            <template #fallback>
+              <div class="h-80 rounded-xl bg-slate-900/80 animate-pulse ring-1 ring-slate-700/60" />
+            </template>
+          </ClientOnly>
+        </section>
+
         <!-- Bio + birthplace map + aka -->
         <section class="grid gap-6 lg:grid-cols-3">
           <div class="lg:col-span-2 section-card">
@@ -300,14 +320,12 @@
               >
                 Grid
               </button>
-              <button
-                type="button"
-                class="px-3 py-1.5 transition-colors"
-                :class="viewMode === 'graph' ? 'bg-indigo-600 text-white' : 'bg-slate-900 text-slate-300 hover:bg-slate-700'"
-                @click="viewMode = 'graph'"
+              <a
+                href="#orbit"
+                class="px-3 py-1.5 transition-colors bg-slate-900 text-indigo-300 hover:bg-slate-700"
               >
-                Orbit
-              </button>
+                Orbit ↑
+              </a>
             </div>
           </div>
 
@@ -363,50 +381,6 @@
             </div>
           </div>
 
-          <div v-else>
-            <ActorGraph
-              :person-id="person.id"
-              :max-projects="maxProjects"
-              :top-cast-per-project="topCastPerProject"
-              @select="onNodeSelect"
-              @insights="onInsights"
-            />
-            <div
-              v-if="selectedNode"
-              class="mt-4 p-4 rounded-lg bg-slate-900/80 border border-slate-700 flex flex-wrap gap-4 items-start"
-            >
-              <img
-                v-if="selectedNode.image"
-                :src="nodeImage(selectedNode)"
-                :alt="selectedNode.label"
-                class="w-16 h-16 rounded-lg object-cover bg-slate-800"
-              />
-              <div class="flex-1 min-w-0">
-                <p class="text-xs uppercase tracking-wide text-slate-500 mb-0.5">
-                  {{ nodeTypeLabel(selectedNode) }}
-                </p>
-                <h4 class="text-lg font-bold text-slate-100">{{ selectedNode.label }}</h4>
-                <p v-if="selectedNode.year" class="text-sm text-slate-400">
-                  {{ selectedNode.year }}
-                  <span v-if="selectedNode.character"> · as {{ selectedNode.character }}</span>
-                </p>
-              </div>
-              <NuxtLink
-                v-if="selectedNode.type === 'project'"
-                :to="projectLink(selectedNode)"
-                class="btn-secondary"
-              >
-                Open {{ selectedNode.mediaType === 'tv' ? 'show' : 'movie' }}
-              </NuxtLink>
-              <NuxtLink
-                v-else-if="selectedNode.type !== 'actor'"
-                :to="'/actor/' + selectedNode.tmdbId"
-                class="btn-secondary"
-              >
-                Open person
-              </NuxtLink>
-            </div>
-          </div>
         </section>
       </div>
     </div>
@@ -429,12 +403,10 @@ const {
 } = useTmdb()
 
 const id = computed(() => String(route.params.pid))
-const viewMode = ref('timeline')
+const viewMode = ref<'timeline' | 'grid'>(
+  route.query.view === 'grid' ? 'grid' : 'timeline',
+)
 const bioExpanded = ref(false)
-const selectedNode = ref<Record<string, any> | null>(null)
-const insights = ref<Record<string, any> | null>(null)
-const maxProjects = 24
-const topCastPerProject = 8
 const minVotesCritical = 100
 
 const {
@@ -610,26 +582,5 @@ function creditAsMediaItem(t: Record<string, any>) {
     vote_average: t.vote_average,
     vote_count: t.vote_count,
   }
-}
-
-function onNodeSelect(node: Record<string, any> | null) {
-  selectedNode.value = node
-}
-function onInsights(val: Record<string, any> | null) {
-  insights.value = val
-}
-function nodeTypeLabel(n: Record<string, any> | null | undefined) {
-  if (!n) return ''
-  if (n.type === 'actor') return 'Person (center)'
-  if (n.type === 'project') return n.mediaType === 'tv' ? 'TV show' : 'Movie'
-  if (n.type === 'repeat') return 'Repeat collaborator'
-  return 'Co-star'
-}
-function nodeImage(n: Record<string, any> | null | undefined) {
-  if (!n?.image) return ''
-  return imageUrl(n.image, 'w185')
-}
-function projectLink(n: Record<string, any>) {
-  return n.mediaType === 'tv' ? `/tv/${n.tmdbId}` : `/m/${n.tmdbId}`
 }
 </script>

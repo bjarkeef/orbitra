@@ -2,6 +2,7 @@
   <div class="home pb-16">
     <HomeHero />
     <div class="space-y-14 mt-10">
+      <HomeOrbitSpotlight />
       <HomeRail
         title="Trending this week"
         subtitle="What people are watching right now"
@@ -27,6 +28,15 @@
         :loading="pendingOnAir"
         :error="errOnAir"
         @retry="refreshOnAir"
+      />
+      <HomeRail
+        title="Airing today"
+        subtitle="Episodes scheduled for today"
+        :items="airingToday"
+        media-type="tv"
+        :loading="pendingAiring"
+        :error="errAiring"
+        @retry="refreshAiring"
       />
       <HomeRail
         title="Popular movies"
@@ -57,6 +67,7 @@ const {
   discoverTv,
   getUpcomingMovies,
   getOnTheAir,
+  getAiringToday,
   withMediaType,
 } = useTmdb()
 
@@ -91,6 +102,16 @@ const {
 })
 
 const {
+  data: airingData,
+  pending: pendingAiring,
+  error: airingError,
+  refresh: refreshAiring,
+} = useLazyAsyncData('home-airing-today', async () => {
+  const res = await getAiringToday(1)
+  return withMediaType(res.results, 'tv')
+})
+
+const {
   data: moviesData,
   pending: pendingMovies,
   error: moviesError,
@@ -113,12 +134,14 @@ const {
 const trending = computed(() => trendingData.value || [])
 const upcoming = computed(() => upcomingData.value || [])
 const onTheAir = computed(() => onAirData.value || [])
+const airingToday = computed(() => airingData.value || [])
 const popularMovies = computed(() => moviesData.value || [])
 const popularTv = computed(() => tvData.value || [])
 
 const errTrending = computed(() => errMsg(trendingError.value))
 const errUpcoming = computed(() => errMsg(upcomingError.value))
 const errOnAir = computed(() => errMsg(onAirError.value))
+const errAiring = computed(() => errMsg(airingError.value))
 const errMovies = computed(() => errMsg(moviesError.value))
 const errTv = computed(() => errMsg(tvError.value))
 

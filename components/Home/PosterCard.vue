@@ -5,14 +5,16 @@
     class="group block rounded-xl overflow-hidden bg-slate-900 ring-1 ring-slate-800/80 hover:ring-indigo-500/50 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-950/30 cursor-pointer"
   >
     <div class="relative aspect-poster bg-slate-950 pointer-events-none">
-      <img
+      <NuxtImg
         v-if="src"
         :src="src"
         :alt="label"
+        width="500"
+        height="750"
         class="h-full w-full object-cover transition duration-500 group-hover:scale-103"
         loading="lazy"
-        decoding="async"
-        draggable="false"
+        format="webp"
+        densities="1x 2x"
       />
       <img
         v-else
