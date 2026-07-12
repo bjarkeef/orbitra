@@ -26,6 +26,7 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@types/node": "^22.20.0",
     "eslint": "^10.6.0",
+    "gifenc": "^1.0.1",
     "knip": "^6.23.0",
     "nuxt": "^4.4.8",
     "playwright": "^1.61.1",

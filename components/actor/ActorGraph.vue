@@ -45,10 +45,11 @@
       <button
         type="button"
         class="ctrl-btn text-xs"
-        :class="{ 'ring-2 ring-indigo-400': paused }"
-        title="Pause / resume simulation"
-        @click="paused = !paused"
-      >{{ paused ? '▶' : '❚❚' }}</button>
+        :class="{ 'ring-2 ring-indigo-400': animate }"
+        :title="animate ? 'Turn off physics motion' : 'Turn on physics motion'"
+        :aria-pressed="animate"
+        @click="toggleAnimate"
+      >{{ animate ? '❚❚' : '▶' }}</button>
     </div>
 
     <div class="absolute bottom-3 left-3 text-xs text-slate-400 space-y-1 z-10 pointer-events-none select-none max-w-[12rem] sm:max-w-none">
@@ -105,6 +106,11 @@ const props = withDefaults(defineProps<{
   yearFrom?: number | null
   yearTo?: number | null
   selectedId?: string | null
+  /**
+   * When true, the force simulation keeps ticking (living graph).
+   * Default off — static settled layout; user can opt in via the ▶ control.
+   */
+  animate?: boolean
 }>(), {
   height: 620,
   maxProjects: 24,
@@ -114,12 +120,14 @@ const props = withDefaults(defineProps<{
   yearFrom: null,
   yearTo: null,
   selectedId: null,
+  animate: false,
 })
 
 const emit = defineEmits<{
-  select: [node: OrbitSimNode | null]
-  built: [graph: GraphPayload]
-  insights: [insights: GraphPayload['insights'] | null]
+  'select': [node: OrbitSimNode | null]
+  'built': [graph: GraphPayload]
+  'insights': [insights: GraphPayload['insights'] | null]
+  'update:animate': [value: boolean]
 }>()
 
 const canvas = ref<HTMLCanvasElement | null>(null)
@@ -131,7 +139,6 @@ const nodeCount = ref(0)
 const linkCount = ref(0)
 const truncated = ref(false)
 const cacheLabel = ref('')
-const paused = ref(false)
 const selectedIdLocal = ref<string | null>(null)
 const hoverId = ref<string | null>(null)
 const cursorClass = ref('cursor-grab')
@@ -345,13 +352,55 @@ function resizeCanvas() {
   if (ctx) ctx.setTransform(sim.dpr, 0, 0, sim.dpr, 0, 0)
 }
 
+function toggleAnimate() {
+  emit('update:animate', !props.animate)
+}
+
+// Re-energize the sim when the user opts into motion after a settled layout.
+watch(
+  () => props.animate,
+  (on) => {
+    if (on && sim && !sim.reducedMotion && sim.alpha < 0.15) {
+      sim.alpha = 0.6
+    }
+  },
+)
+
 function loop() {
   if (!sim) return
-  if (visible && !paused.value && !sim.reducedMotion) {
+  // Motion is opt-in: only step physics when animate is on and a11y allows it.
+  if (visible && props.animate && !sim.reducedMotion) {
     sim.alpha = stepOrbitPhysics(sim.nodes, sim.links, sim.alpha)
   }
   draw(sim)
   sim.raf = requestAnimationFrame(loop)
+}
+
+/**
+ * Draw an image into a circle with object-fit: cover (crop, never stretch).
+ * `align: 'top'` keeps faces in frame for portrait profiles.
+ */
+function drawImageCover(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  cx: number,
+  cy: number,
+  r: number,
+  align: 'center' | 'top' = 'center',
+) {
+  const iw = img.naturalWidth || img.width
+  const ih = img.naturalHeight || img.height
+  if (!iw || !ih) return
+  const size = r * 2
+  const scale = Math.max(size / iw, size / ih)
+  const dw = iw * scale
+  const dh = ih * scale
+  const dx = cx - dw / 2
+  // Top-align when the scaled image is taller than the disc (typical portraits).
+  const dy = align === 'top' && dh > size + 0.5
+    ? cy - r
+    : cy - dh / 2
+  ctx.drawImage(img, dx, dy, dw, dh)
 }
 
 function draw(state: SimState) {
@@ -418,7 +467,7 @@ function draw(state: SimState) {
       ctx.fill()
     }
 
-    // image disc when available
+    // image disc when available — object-fit: cover (crop, never stretch)
     const imgEntry = n.image ? state.images.get(n.image) : null
     if (imgEntry && imgEntry instanceof HTMLImageElement) {
       ctx.save()
@@ -426,7 +475,8 @@ function draw(state: SimState) {
       ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
       ctx.closePath()
       ctx.clip()
-      ctx.drawImage(imgEntry, n.x - r, n.y - r, r * 2, r * 2)
+      const faceAlign = n.type === 'project' ? 'center' : 'top'
+      drawImageCover(ctx, imgEntry, n.x, n.y, r, faceAlign)
       ctx.restore()
       ctx.beginPath()
       ctx.arc(n.x, n.y, r, 0, Math.PI * 2)

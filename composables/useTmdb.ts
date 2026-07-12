@@ -282,6 +282,14 @@ export interface DiscoverMediaOptions {
   'with_watch_monetization_types'?: string
   'primary_release_year'?: number
   'first_air_date_year'?: number
+  /** Movie runtime minutes (TMDB discover). */
+  'with_runtime.gte'?: number
+  'with_runtime.lte'?: number
+  /** ISO date strings YYYY-MM-DD for release / first-air windows. */
+  'primary_release_date.gte'?: string
+  'primary_release_date.lte'?: string
+  'first_air_date.gte'?: string
+  'first_air_date.lte'?: string
 }
 
 /** Videos / trailers for a title. */
@@ -1081,6 +1089,12 @@ export function useTmdb() {
     }
     if (opts.primary_release_year != null) q.primary_release_year = opts.primary_release_year
     if (opts.first_air_date_year != null) q.first_air_date_year = opts.first_air_date_year
+    if (opts['with_runtime.gte'] != null) q['with_runtime.gte'] = opts['with_runtime.gte']
+    if (opts['with_runtime.lte'] != null) q['with_runtime.lte'] = opts['with_runtime.lte']
+    if (opts['primary_release_date.gte']) q['primary_release_date.gte'] = opts['primary_release_date.gte']
+    if (opts['primary_release_date.lte']) q['primary_release_date.lte'] = opts['primary_release_date.lte']
+    if (opts['first_air_date.gte']) q['first_air_date.gte'] = opts['first_air_date.gte']
+    if (opts['first_air_date.lte']) q['first_air_date.lte'] = opts['first_air_date.lte']
     return q
   }
 

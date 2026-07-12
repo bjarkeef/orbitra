@@ -15,6 +15,15 @@ Open-source **movie & TV discovery** app — [Nuxt 4](https://nuxt.com/), [Tailw
 </p>
 
 <p align="center">
+  <img src="docs/screenshots/orbit-demo.gif" alt="Orbit co-star graph demo — shareable filters, opt-in motion" width="720" />
+</p>
+
+<p align="center">
+  <a href="https://orbitra-livid.vercel.app/orbit/6193"><strong>Try a shareable orbit</strong></a>
+  · Leonardo DiCaprio · filters &amp; selection live in the URL
+</p>
+
+<p align="center">
   <img src="docs/screenshots/06-person-orbit.png" alt="Person page Orbit co-star graph" width="900" />
 </p>
 
@@ -25,8 +34,8 @@ Open-source **movie & TV discovery** app — [Nuxt 4](https://nuxt.com/), [Tailw
 Most TMDB portfolio apps are thin clients that put the API key in the browser and stop at posters and search. Orbitra is built around a clearer story:
 
 1. **Server-only TMDB access** — the browser never sees `TMDB_API`; all calls go through Nitro.
-2. **Orbit graph** — open a person → **Orbit** tab → co-star collaboration graph. Topology is built **on the server**; the canvas only renders.
-3. **Practical discovery** — region-aware watch providers, Discover filters, collections with local ratings, rich person and title pages.
+2. **Orbit graph** — open a person → **Orbit** tab → co-star collaboration graph. Topology is built **on the server**; the canvas only renders. **Share the URL** (filters + selected node); **physics motion is opt-in** (off by default).
+3. **Practical discovery** — region-aware watch providers, Discover filters, **Tonight** mood/time-budget picks, collections with local ratings, rich person and title pages.
 
 No accounts, no watchlists synced to TMDB — keep it simple and self-contained.
 
@@ -38,15 +47,16 @@ No accounts, no watchlists synced to TMDB — keep it simple and self-contained.
 |------|------------|
 | **Home** | Hero + trending / popular rails |
 | **Discover** | Filter by streaming service, monetization type, and watch region |
+| **Tonight** | Mood + time-budget presets (short night, comfort, mind-bender…) via TMDB discover |
 | **Search** | Debounced multi-search (movies, TV, people); optional “on my services” filter |
 | **Top 100** | Top-rated movie & TV charts |
 | **Collections** | Franchise browse, watch order, **local** star ratings (browser storage) |
 | **Title pages** | Overview, cast, providers (“where to watch”), recommended + similar rails, videos/trailers where wired |
 | **Person pages** | Bio, birthplace map, career timeline, role breakdown, social / IMDb links |
-| **Orbit graph** | Opt-in co-star network — topology built **on the server**, canvas is render-only |
+| **Orbit graph** | Shareable co-star network — server-built topology; motion toggleable (default off) |
 | **Settings** | Watch region for providers and Discover |
 
-Signature feature: open a person → **Orbit** tab → co-star collaboration graph without N+1 browser calls to TMDB.
+Signature feature: open a person → **Orbit** → co-star collaboration graph without N+1 browser calls to TMDB. Hit **Share link** to copy filters + selection.
 
 ---
 
@@ -73,6 +83,8 @@ Browser  →  Nuxt 4 (Vue 3)  →  Nitro routes
 | ![Movie](docs/screenshots/04-movie.png) | ![Discover](docs/screenshots/02-discover.png) |
 | **Person** | **Collections** |
 | ![Person](docs/screenshots/05-person.png) | ![Collections](docs/screenshots/07-collections.png) |
+| **Orbit (static)** | **Orbit (demo GIF)** |
+| ![Orbit](docs/screenshots/06-person-orbit.png) | ![Orbit GIF](docs/screenshots/orbit-demo.gif) |
 
 Regenerate after UI changes (app must be running on port 3000):
 
@@ -80,7 +92,7 @@ Regenerate after UI changes (app must be running on port 3000):
 npm i -D playwright
 npx playwright install chromium
 npm run build && node .output/server/index.mjs   # other terminal
-node scripts/capture-screenshots.mjs
+node scripts/capture-screenshots.mjs             # PNGs + docs/screenshots/orbit-demo.gif
 ```
 
 ### Design decisions
