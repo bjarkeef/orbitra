@@ -77,18 +77,24 @@
               ? 'ring-2 ring-indigo-400 shadow-md shadow-indigo-500/20'
               : 'ring-slate-700/80 group-hover:ring-slate-500'"
           >
-            <img
+            <NuxtImg
               v-if="posterSrc(part)"
               :src="posterSrc(part)"
               :alt="partTitle(part)"
+              width="92"
+              height="138"
               class="w-full h-full object-cover"
               loading="lazy"
+              format="webp"
             />
-            <img
+            <NuxtImg
               v-else
-              src="@/assets/img/noPoster.png"
+              src="/img/noPoster.png"
               alt=""
+              width="92"
+              height="138"
               class="w-full h-full object-cover opacity-50"
+              loading="lazy"
             />
           </div>
           <span

@@ -64,8 +64,9 @@
                 <div v-for="n in 6" :key="n" class="shrink-0 w-20 aspect-poster rounded-md bg-slate-700/60 animate-pulse" />
               </div>
             </div>
-            <div v-else-if="cast.length" class="overflow-hidden">
-              <MCast :cast="cast" />
+            <div v-else-if="cast.length" class="section-card scrollbar overflow-x-auto">
+              <h2 class="text-xl font-bold text-slate-100 mb-4">Cast</h2>
+              <CastRail :cast="cast" sort-by-popularity />
             </div>
 
             <MCollection v-if="movie.belongs_to_collection" :movie="movie" />

@@ -24,7 +24,7 @@
     </div>
 
     <ClientOnly v-else>
-      <ActorOrbitStage
+      <LazyActorOrbitStage
         :person-id="personId"
         :person-name="personName"
         :sync-route="true"

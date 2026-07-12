@@ -59,12 +59,15 @@
             class="section-card hover:ring-1 hover:ring-indigo-500/40 transition-all flex flex-col gap-3"
           >
             <div class="flex gap-3">
-              <img
+              <NuxtImg
                 v-if="posterSrc(c)"
                 :src="posterSrc(c)"
                 :alt="c.name"
+                width="64"
+                height="96"
                 class="w-16 h-24 object-cover rounded-md bg-slate-900 shrink-0"
                 loading="lazy"
+                format="webp"
               />
               <div class="min-w-0">
                 <h2 class="font-bold text-slate-100 line-clamp-2">{{ c.name }}</h2>

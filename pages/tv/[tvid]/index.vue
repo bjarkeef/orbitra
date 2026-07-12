@@ -78,11 +78,11 @@
             <template v-else>
               <div v-if="cast.length" class="section-card scrollbar overflow-x-auto">
                 <h2 class="text-xl font-bold text-slate-100 mb-4">Cast</h2>
-                <TvCast :cast="cast" />
+                <CastRail :cast="cast" />
               </div>
               <div v-if="crew.length" class="section-card scrollbar overflow-x-auto">
                 <h2 class="text-xl font-bold text-slate-100 mb-4">Crew</h2>
-                <TvCast :cast="crew" />
+                <CastRail :cast="crew" />
               </div>
             </template>
 
@@ -96,18 +96,25 @@
                   :to="'/tv/' + tv.id + '/season/' + season.season_number"
                 >
                   <div class="w-1/3 shrink-0">
-                    <img
+                    <NuxtImg
                       v-if="seasonPoster(season)"
                       :src="seasonPoster(season)"
                       :alt="season.name"
+                      width="185"
+                      height="278"
                       class="rounded-md w-full bg-slate-900"
                       loading="lazy"
+                      format="webp"
+                      densities="1x 2x"
                     />
-                    <img
+                    <NuxtImg
                       v-else
-                      class="bg-slate-900 rounded-md w-full"
-                      src="@/assets/img/noPoster.png"
+                      src="/img/noPoster.png"
                       alt="No Poster"
+                      width="185"
+                      height="278"
+                      class="bg-slate-900 rounded-md w-full"
+                      loading="lazy"
                     />
                   </div>
                   <div class="w-2/3 min-w-0">

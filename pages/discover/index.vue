@@ -220,12 +220,15 @@
               :title="p.provider_name"
               @click="toggleProvider(p)"
             >
-              <img
+              <NuxtImg
                 v-if="p.logo_path"
                 :src="logoSrc(p.logo_path)"
                 :alt="p.provider_name"
+                width="48"
+                height="48"
                 class="w-full h-full object-cover rounded-[inherit]"
                 loading="lazy"
+                format="webp"
               />
               <span
                 v-else

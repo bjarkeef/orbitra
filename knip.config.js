@@ -21,8 +21,6 @@ export default {
   ignoreFiles: [],
   ignoreDependencies: [
     '@nuxt/devtools',
-    'sass',
-    'sass-loader',
     'vue-tsc',
     // Transitive via @nuxtjs/tailwindcss; config file imports by name
     'tailwindcss',

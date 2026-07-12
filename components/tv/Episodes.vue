@@ -9,18 +9,25 @@
     >
       <div class="sm:w-44 shrink-0">
         <div class="rounded-lg overflow-hidden aspect-video bg-slate-950 ring-1 ring-slate-800">
-          <img
+          <NuxtImg
             v-if="stillSrc(episode)"
             :src="stillSrc(episode)"
             :alt="episode.name"
+            width="500"
+            height="281"
             class="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300"
             loading="lazy"
+            format="webp"
+            densities="1x 2x"
           />
-          <img
+          <NuxtImg
             v-else
-            class="w-full h-full object-cover opacity-50"
-            src="@/assets/img/noPoster.png"
+            src="/img/noPoster.png"
             alt=""
+            width="500"
+            height="281"
+            class="w-full h-full object-cover opacity-50"
+            loading="lazy"
           />
         </div>
       </div>

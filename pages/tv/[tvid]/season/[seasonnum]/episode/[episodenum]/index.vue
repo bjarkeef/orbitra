@@ -26,16 +26,23 @@
           <div class="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
             <div class="w-full max-w-xl lg:max-w-md shrink-0 mx-auto lg:mx-0">
               <div class="rounded-2xl overflow-hidden aspect-video bg-slate-900 ring-1 ring-white/10 shadow-2xl shadow-black/40">
-                <img
+                <NuxtImg
                   v-if="stillSrc"
                   :src="stillSrc"
                   :alt="episode.name"
+                  width="780"
+                  height="439"
                   class="w-full h-full object-cover"
+                  loading="eager"
+                  format="webp"
+                  densities="1x 2x"
                 />
-                <img
+                <NuxtImg
                   v-else
-                  src="@/assets/img/noPoster.png"
+                  src="/img/noPoster.png"
                   alt=""
+                  width="780"
+                  height="439"
                   class="w-full h-full object-cover opacity-50"
                 />
               </div>
@@ -101,17 +108,17 @@
 
             <div v-if="guestStars.length" class="section-card scrollbar overflow-x-auto">
               <h2 class="text-xl font-bold text-slate-100 mb-4">Guest stars</h2>
-              <TvCast :cast="guestStars" />
+              <CastRail :cast="guestStars" />
             </div>
 
             <div v-if="cast.length" class="section-card scrollbar overflow-x-auto">
               <h2 class="text-xl font-bold text-slate-100 mb-4">Series cast</h2>
-              <TvCast :cast="cast" />
+              <CastRail :cast="cast" />
             </div>
 
             <div v-if="crew.length" class="section-card scrollbar overflow-x-auto">
               <h2 class="text-xl font-bold text-slate-100 mb-4">Crew</h2>
-              <TvCast :cast="crew" />
+              <CastRail :cast="crew" />
             </div>
           </div>
 

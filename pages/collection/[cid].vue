@@ -23,16 +23,23 @@
         <div class="relative max-w-screen-2xl mx-auto px-4 sm:px-6 pt-8 pb-12 sm:pb-16 flex flex-col sm:flex-row gap-8 sm:gap-10 items-end min-h-[22rem] sm:min-h-[28rem] md:min-h-[32rem]">
           <div class="shrink-0 w-36 sm:w-44 md:w-52 -mb-4 sm:mb-0 self-center sm:self-end">
             <div class="rounded-xl overflow-hidden shadow-2xl shadow-black/60 ring-1 ring-white/10 aspect-[2/3] bg-slate-900">
-              <img
+              <NuxtImg
                 v-if="posterUrl"
                 :src="posterUrl"
                 :alt="collection.name"
+                width="500"
+                height="750"
                 class="w-full h-full object-cover"
+                loading="eager"
+                format="webp"
+                densities="1x 2x"
               />
-              <img
+              <NuxtImg
                 v-else
-                src="@/assets/img/noPoster.png"
+                src="/img/noPoster.png"
                 alt=""
+                width="500"
+                height="750"
                 class="w-full h-full object-cover opacity-60"
               />
             </div>

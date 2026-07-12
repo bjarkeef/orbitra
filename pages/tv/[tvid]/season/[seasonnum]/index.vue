@@ -18,16 +18,23 @@
         <div class="relative max-w-screen-2xl mx-auto px-4 sm:px-6 pt-8 pb-10 flex flex-col sm:flex-row gap-8 items-end min-h-[18rem] sm:min-h-[22rem]">
           <div class="shrink-0 w-32 sm:w-40 md:w-44 mx-auto sm:mx-0">
             <div class="rounded-2xl overflow-hidden aspect-[2/3] bg-slate-900 ring-1 ring-white/10 shadow-2xl shadow-black/50">
-              <img
+              <NuxtImg
                 v-if="seasonPosterSrc"
                 :src="seasonPosterSrc"
                 :alt="season.name"
+                width="500"
+                height="750"
                 class="w-full h-full object-cover"
+                loading="eager"
+                format="webp"
+                densities="1x 2x"
               />
-              <img
+              <NuxtImg
                 v-else
-                src="@/assets/img/noPoster.png"
+                src="/img/noPoster.png"
                 alt=""
+                width="500"
+                height="750"
                 class="w-full h-full object-cover opacity-60"
               />
             </div>
@@ -87,7 +94,7 @@
             </div>
             <div v-else-if="cast.length" class="section-card scrollbar overflow-x-auto">
               <h2 class="text-xl font-bold text-slate-100 mb-4">Season cast</h2>
-              <TvCast :cast="cast" />
+              <CastRail :cast="cast" />
             </div>
 
             <div v-if="season.episodes?.length" class="section-card">

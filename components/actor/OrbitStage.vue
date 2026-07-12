@@ -29,7 +29,7 @@
     />
 
     <div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,20rem)] lg:items-start">
-      <ActorGraph
+      <LazyActorGraph
         :person-id="personId"
         :height="height"
         :max-projects="maxProjects"

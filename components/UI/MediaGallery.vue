@@ -21,12 +21,15 @@
         :aria-label="`View image ${i + 1} of ${paths.length}`"
         @click="openAt(i)"
       >
-        <img
+        <NuxtImg
           :src="thumbUrl(path)"
           alt=""
+          width="500"
+          height="750"
           class="w-full h-full object-cover pointer-events-none"
           loading="lazy"
-          decoding="async"
+          format="webp"
+          densities="1x 2x"
         />
       </button>
     </div>
@@ -76,11 +79,16 @@
           >
             ‹
           </button>
-          <img
+          <NuxtImg
             :src="activeDisplayUrl"
             alt=""
+            width="1280"
+            height="720"
             class="max-h-full max-w-full object-contain rounded-lg shadow-2xl select-none"
             draggable="false"
+            format="webp"
+            quality="90"
+            loading="eager"
           />
           <button
             v-if="paths.length > 1"
@@ -108,7 +116,15 @@
             :aria-current="i === activeIndex ? 'true' : undefined"
             @click="activeIndex = i"
           >
-            <img :src="thumbUrl(path)" alt="" class="w-full h-full object-cover" />
+            <NuxtImg
+              :src="thumbUrl(path)"
+              alt=""
+              width="128"
+              height="80"
+              class="w-full h-full object-cover"
+              format="webp"
+              loading="lazy"
+            />
           </button>
         </div>
       </div>

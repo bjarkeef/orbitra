@@ -31,12 +31,15 @@
             :to="'/orbit/' + p.id"
             class="flex items-center gap-3 rounded-xl px-3 py-2 hover:bg-slate-900/80 ring-1 ring-transparent hover:ring-slate-700 transition-colors"
           >
-            <img
+            <NuxtImg
               v-if="p.profile_path"
               :src="imageUrl(p.profile_path, 'w185')"
               alt=""
+              width="48"
+              height="48"
               class="w-12 h-12 rounded-full object-cover bg-slate-800"
               loading="lazy"
+              format="webp"
             />
             <span
               v-else

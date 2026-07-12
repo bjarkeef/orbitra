@@ -59,12 +59,15 @@
             class="flex flex-col items-center gap-1 w-16"
             :title="availabilityTitle(p.provider_name, group.kind)"
           >
-            <img
+            <NuxtImg
               v-if="p.logo_path"
               :src="logoSrc(p.logo_path)"
               :alt="p.provider_name"
+              width="48"
+              height="48"
               class="w-12 h-12 rounded-lg object-cover ring-1 ring-slate-700"
               loading="lazy"
+              format="webp"
             />
             <span
               v-else

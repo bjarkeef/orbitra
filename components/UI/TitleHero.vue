@@ -18,10 +18,12 @@
             format="webp"
             densities="1x 2x"
           />
-          <img
+          <NuxtImg
             v-else
-            src="@/assets/img/noPoster.png"
+            src="/img/noPoster.png"
             alt=""
+            width="500"
+            height="750"
             class="w-full h-full object-cover opacity-60"
           />
         </div>

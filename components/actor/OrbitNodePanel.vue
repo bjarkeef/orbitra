@@ -3,7 +3,7 @@
     v-if="node"
     class="p-4 rounded-xl bg-slate-900/80 border border-slate-700 flex flex-wrap gap-4 items-start"
   >
-    <img
+    <NuxtImg
       v-if="imageSrc"
       :src="imageSrc"
       :alt="node.label"
@@ -11,7 +11,8 @@
       height="64"
       class="w-16 h-16 rounded-lg object-cover bg-slate-800"
       loading="lazy"
-      decoding="async"
+      format="webp"
+      densities="1x 2x"
     />
     <div class="flex-1 min-w-0">
       <p class="text-xs uppercase tracking-wide text-slate-500 mb-0.5">

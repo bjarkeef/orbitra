@@ -16,10 +16,12 @@
         format="webp"
         densities="1x 2x"
       />
-      <img
+      <NuxtImg
         v-else
-        src="@/assets/img/noPoster.png"
+        src="/img/noPoster.png"
         alt=""
+        width="500"
+        height="750"
         class="h-full w-full object-cover opacity-60 bg-slate-900"
         loading="lazy"
         draggable="false"

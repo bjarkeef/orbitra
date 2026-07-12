@@ -44,7 +44,7 @@
             :to="'/actor/' + c.tmdbId"
             class="inline-flex items-center gap-2 rounded-full bg-slate-950/80 ring-1 ring-slate-700/80 pl-1 pr-3 py-1 hover:ring-indigo-400/50 transition-colors"
           >
-            <img
+            <NuxtImg
               v-if="c.imageUrl"
               :src="c.imageUrl"
               :alt="c.label"
@@ -52,7 +52,7 @@
               height="28"
               class="w-7 h-7 rounded-full object-cover bg-slate-800"
               loading="lazy"
-              decoding="async"
+              format="webp"
             />
             <span
               v-else

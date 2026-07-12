@@ -22,16 +22,23 @@
         <div class="relative max-w-screen-2xl mx-auto px-4 sm:px-6 pt-10 pb-12 flex flex-col sm:flex-row gap-8 items-end min-h-[20rem] sm:min-h-[24rem]">
           <div class="shrink-0 w-36 sm:w-44 md:w-48 mx-auto sm:mx-0">
             <div class="rounded-2xl overflow-hidden aspect-[2/3] bg-slate-900 ring-1 ring-white/10 shadow-2xl shadow-black/50">
-              <img
+              <NuxtImg
                 v-if="profileUrl"
                 :src="profileUrl"
                 :alt="person.name"
+                width="500"
+                height="750"
                 class="w-full h-full object-cover"
+                loading="eager"
+                format="webp"
+                densities="1x 2x"
               />
-              <img
+              <NuxtImg
                 v-else
-                src="@/assets/img/noActor.png"
+                src="/img/noActor.png"
                 alt=""
+                width="500"
+                height="750"
                 class="w-full h-full object-cover opacity-60"
               />
             </div>
@@ -96,7 +103,8 @@
         <!-- Orbit first (signature feature) -->
         <section v-if="person" id="orbit" class="section-card">
           <ClientOnly>
-            <ActorOrbitStage
+            <!-- Lazy* code-splits the canvas sim so non-orbit routes stay light -->
+            <LazyActorOrbitStage
               :person-id="person.id"
               :person-name="person.name"
               :sync-route="true"
@@ -234,12 +242,15 @@
                   class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-900/80 transition-colors"
                 >
                   <span class="text-xs font-bold text-slate-500 w-5">{{ i + 1 }}</span>
-                  <img
+                  <NuxtImg
                     v-if="t.poster_path"
                     :src="imageUrl(t.poster_path, 'w185')"
                     alt=""
+                    width="40"
+                    height="56"
                     class="w-10 h-14 object-cover rounded bg-slate-900 shrink-0"
                     loading="lazy"
+                    format="webp"
                   />
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold text-slate-100 truncate">{{ t.title }}</p>
@@ -274,12 +285,15 @@
                   class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-900/80 transition-colors"
                 >
                   <span class="text-xs font-bold text-slate-500 w-5">{{ i + 1 }}</span>
-                  <img
+                  <NuxtImg
                     v-if="t.poster_path"
                     :src="imageUrl(t.poster_path, 'w185')"
                     alt=""
+                    width="40"
+                    height="56"
                     class="w-10 h-14 object-cover rounded bg-slate-900 shrink-0"
                     loading="lazy"
+                    format="webp"
                   />
                   <div class="min-w-0 flex-1">
                     <p class="text-sm font-semibold text-slate-100 truncate">{{ t.title }}</p>
@@ -349,12 +363,15 @@
                     :to="titleHref(t)"
                     class="flex gap-3 items-start rounded-lg hover:bg-slate-900/60 p-2 -ml-2 transition-colors"
                   >
-                    <img
+                    <NuxtImg
                       v-if="t.poster_path"
                       :src="imageUrl(t.poster_path, 'w185')"
                       alt=""
+                      width="48"
+                      height="72"
                       class="w-12 h-[4.5rem] object-cover rounded bg-slate-900 shrink-0"
                       loading="lazy"
+                      format="webp"
                     />
                     <div class="min-w-0">
                       <p class="font-semibold text-slate-100">{{ t.title }}</p>

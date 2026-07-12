@@ -348,7 +348,8 @@ const IMAGE_BASE = 'https://image.tmdb.org/t/p' as const
 
 /** Client-side GET TTL — de-dupes navigations / remounts within a session. */
 const CLIENT_GET_TTL_MS = 5 * 60 * 1000
-const CLIENT_CACHE_MAX = 200
+/** Sized for list pages + streaming-filter provider bursts without thrashing. */
+const CLIENT_CACHE_MAX = 400
 
 interface ClientCacheEntry {
   expires: number
@@ -359,6 +360,12 @@ interface ClientCacheEntry {
 const clientGetCache = new Map<string, ClientCacheEntry>()
 /** Coalesce concurrent identical GETs into one network request. */
 const clientInflight = new Map<string, Promise<unknown>>()
+/**
+ * Boolean streaming availability by `region:media:id` — avoids re-deriving from
+ * full provider payloads when search paginates with "streaming only" on.
+ */
+const streamingAvailMemo = new Map<string, boolean>()
+const STREAMING_MEMO_MAX = 400
 
 /**
  * Normalize / validate a TMDB resource path for the proxy URL.
@@ -746,6 +753,7 @@ export function useTmdb() {
   /**
    * Keep only movie/TV multi-search hits that have subscription (flatrate) availability
    * in the given region. People rows are dropped when filtering for streaming.
+   * Uses module-level memo + client GET cache so pagination reuses prior checks.
    */
   async function filterStreamingOnly(
     items: TmdbMediaItem[],
@@ -759,19 +767,29 @@ export function useTmdb() {
       return mt === 'movie' || mt === 'tv' || (!mt && (it.title || it.name))
     })
 
-    const flags = await mapPoolLimited(candidates, 4, async (it) => {
+    const flags = await mapPoolLimited(candidates, 6, async (it) => {
       const mt
         = it.media_type === 'tv' || (!it.media_type && it.name && !it.title)
           ? 'tv'
           : 'movie'
+      const memoKey = `${code}:${mt}:${it.id}`
+      const hit = streamingAvailMemo.get(memoKey)
+      if (hit !== undefined) return hit
       try {
         const providers
           = mt === 'tv'
             ? await getTvProviders(it.id)
             : await getMovieProviders(it.id)
-        return hasStreamingInRegion(providers, code)
+        const ok = hasStreamingInRegion(providers, code)
+        if (streamingAvailMemo.size >= STREAMING_MEMO_MAX && !streamingAvailMemo.has(memoKey)) {
+          const first = streamingAvailMemo.keys().next().value
+          if (first !== undefined) streamingAvailMemo.delete(first)
+        }
+        streamingAvailMemo.set(memoKey, ok)
+        return ok
       }
       catch {
+        // Do not memoize failures — transient network/proxy errors should retry.
         return false
       }
     })
@@ -976,19 +994,6 @@ export function useTmdb() {
     return list.map((p, i) => ({ ...p, watch_order: i + 1 }))
   }
 
-  /** Search TMDB collections by name. */
-  function searchCollections(
-    query: string,
-    page = 1,
-  ): Promise<TmdbPagedResult<TmdbCollection>> {
-    const q = String(query || '').trim()
-    if (!q) throw new Error('Search query is required')
-    return tmdb<TmdbPagedResult<TmdbCollection>>('search/collection', {
-      query: q,
-      page,
-    })
-  }
-
   /**
    * Orbitra curated collection browse (server builds part_ids + genres from TMDB).
    */
@@ -1008,19 +1013,6 @@ export function useTmdb() {
     if (opts.minParts != null) query.minParts = opts.minParts
     if (opts.maxParts != null) query.maxParts = opts.maxParts
     return $fetch('/api/collections', { query })
-  }
-
-  /**
-   * Resolve membership: prefer movie.belongs_to_collection.id, else null.
-   * Full part list always comes from getCollection(collectionId).
-   */
-  function collectionIdFromMovie(
-    movie: { belongs_to_collection?: { id?: number } | null } | null | undefined,
-  ): number | null {
-    const id = movie?.belongs_to_collection?.id
-    if (id == null) return null
-    const n = Number(id)
-    return Number.isFinite(n) && n > 0 ? n : null
   }
 
   /**
@@ -1122,8 +1114,9 @@ export function useTmdb() {
   }
 
   /**
-   * Public client API — only helpers used by pages/components (see knip).
+   * Public client API — only helpers used by pages/components.
    * Prefer *Detailed + append_to_response; providers stay separate (not appendable).
+   * regionProviders / hasStreamingInRegion stay private (used by filterStreamingOnly).
    */
   return {
     imageUrl,
@@ -1136,8 +1129,6 @@ export function useTmdb() {
     getTvProviders,
     withMediaType,
     getWatchProviderList,
-    regionProviders,
-    hasStreamingInRegion,
     filterStreamingOnly,
     getGenreList,
     pickTrailer,
@@ -1155,9 +1146,7 @@ export function useTmdb() {
     personExternalLinks,
     getCollection,
     sortCollectionParts,
-    searchCollections,
     browseCollections,
-    collectionIdFromMovie,
     searchMulti,
     getTopRatedMovies,
     getTopRatedTv,

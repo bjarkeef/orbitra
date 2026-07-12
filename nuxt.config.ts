@@ -11,12 +11,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'theme-color', content: '#0f172a' },
       ],
-      link: [
-        {
-          rel: 'stylesheet',
-          href: 'https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap',
-        },
-      ],
+      // Nunito is self-hosted via @font-face in assets/css/main.css (no Google Fonts).
     },
   },
 
@@ -60,7 +55,7 @@ export default defineNuxtConfig({
     },
   },
 
-  // TMDB CDN + local assets; posters use NuxtImg with lazy loading.
+  // TMDB CDN optimized via IPX (webp); local placeholders in public/img.
   image: {
     domains: ['image.tmdb.org'],
     format: ['webp'],

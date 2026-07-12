@@ -69,18 +69,25 @@
               :to="'/m/' + part.id"
               class="relative sm:w-40 md:w-48 shrink-0 aspect-[2/3] sm:aspect-auto sm:min-h-[14rem] block overflow-hidden bg-slate-900"
             >
-              <img
+              <NuxtImg
                 v-if="posterSrc(part)"
                 :src="posterSrc(part)"
                 :alt="part.title || 'Movie'"
+                width="500"
+                height="750"
                 class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 loading="lazy"
+                format="webp"
+                densities="1x 2x"
               />
-              <img
+              <NuxtImg
                 v-else
-                class="absolute inset-0 w-full h-full object-cover opacity-50"
-                src="@/assets/img/noPoster.png"
+                src="/img/noPoster.png"
                 alt="No Poster"
+                width="500"
+                height="750"
+                class="absolute inset-0 w-full h-full object-cover opacity-50"
+                loading="lazy"
               />
               <div class="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent sm:hidden" />
             </NuxtLink>
@@ -181,18 +188,25 @@
           :to="'/m/' + part.id"
           class="w-1/3 shrink-0 block max-w-[7rem]"
         >
-          <img
+          <NuxtImg
             v-if="posterSrc(part)"
             :src="posterSrc(part)"
             :alt="part.title || 'Movie'"
+            width="185"
+            height="278"
             class="rounded-md w-full bg-slate-900"
             loading="lazy"
+            format="webp"
+            densities="1x 2x"
           />
-          <img
+          <NuxtImg
             v-else
-            class="bg-slate-900 rounded-md w-full"
-            src="@/assets/img/noPoster.png"
+            src="/img/noPoster.png"
             alt="No Poster"
+            width="185"
+            height="278"
+            class="bg-slate-900 rounded-md w-full"
+            loading="lazy"
           />
         </NuxtLink>
         <div class="w-2/3 min-w-0 flex flex-col gap-2 flex-1">
