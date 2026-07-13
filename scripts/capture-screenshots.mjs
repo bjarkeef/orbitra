@@ -38,7 +38,7 @@ async function shot(name, url, {
   }
   await page.waitForTimeout(extraWait)
   if (scrollY > 0) {
-    await page.evaluate((y) => window.scrollTo(0, y), scrollY)
+    await page.evaluate(y => window.scrollTo(0, y), scrollY)
     await page.waitForTimeout(600)
   }
   await page.screenshot({ path: path.join(out, name) })
