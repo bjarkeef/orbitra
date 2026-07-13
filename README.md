@@ -76,14 +76,14 @@ Browser  →  Nuxt 4 (Vue 3)  →  Nitro routes
 | Home | Discover |
 |:----:|:--------:|
 | ![Home](docs/screenshots/01-home.png) | ![Discover](docs/screenshots/02-discover.png) |
-| **Search** | **Movie detail** |
-| ![Search](docs/screenshots/03-search.png) | ![Movie](docs/screenshots/04-movie.png) |
-| **Person** | **Collections** |
-| ![Person](docs/screenshots/05-person.png) | ![Collections](docs/screenshots/07-collections.png) |
+| **Tonight** | **Search** |
+| ![Tonight](docs/screenshots/02b-tonight.png) | ![Search](docs/screenshots/03-search.png) |
+| **Movie detail** | **Person** |
+| ![Movie](docs/screenshots/04-movie.png) | ![Person](docs/screenshots/05-person.png) |
+| **Collections** | **Orbit index** |
+| ![Collections](docs/screenshots/07-collections.png) | ![Orbit index](docs/screenshots/08-orbit-index.png) |
 | **Orbit graph** | **Orbit filters** |
 | ![Orbit](docs/screenshots/06-person-orbit.png) | ![Orbit filters](docs/screenshots/09-orbit-filter-movie.png) |
-| **Orbit index** | |
-| ![Orbit index](docs/screenshots/08-orbit-index.png) | |
 
 Regenerate after UI changes (app must be running on port 3000):
 
