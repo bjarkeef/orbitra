@@ -2,6 +2,16 @@
   "name": "orbitra",
   "version": "1.0.0",
   "private": true,
+  "description": "Map the orbits of film & TV — open-source discovery with shareable co-star graphs (TMDB)",
+  "license": "MIT",
+  "homepage": "https://orbitra-livid.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bjarkeef/orbitra.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bjarkeef/orbitra/issues"
+  },
   "engines": {
     "node": ">=20.19.0"
   },
@@ -26,7 +36,6 @@
     "@nuxtjs/tailwindcss": "^6.14.0",
     "@types/node": "^22.20.0",
     "eslint": "^10.6.0",
-    "gifenc": "^1.0.1",
     "knip": "^6.23.0",
     "nuxt": "^4.4.8",
     "playwright": "^1.61.1",

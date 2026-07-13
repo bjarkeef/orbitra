@@ -2,7 +2,7 @@
 
 **Map the orbits of film & television.**
 
-Open-source **movie & TV discovery** app — [Nuxt 4](https://nuxt.com/), [Tailwind CSS](https://tailwindcss.com/), [TMDB API](https://www.themoviedb.org/). Built as a public portfolio / learning repo, not a commercial product.
+Open-source movie and TV discovery — [Nuxt 4](https://nuxt.com/), [Tailwind CSS](https://tailwindcss.com/), [TMDB](https://www.themoviedb.org/). Built as a public portfolio repo: practical browsing plus a signature **co-star orbit graph**.
 
 [![CI](https://github.com/bjarkeef/orbitra/actions/workflows/ci.yml/badge.svg)](https://github.com/bjarkeef/orbitra/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-slate.svg)](./LICENSE)
@@ -11,33 +11,29 @@ Open-source **movie & TV discovery** app — [Nuxt 4](https://nuxt.com/), [Tailw
 **Live demo:** [orbitra-livid.vercel.app](https://orbitra-livid.vercel.app)
 
 <p align="center">
-  <img src="docs/screenshots/01-home.png" alt="Orbitra home — hero and trending rails" width="900" />
+  <img src="docs/screenshots/01-home.png" alt="Orbitra home — hero, Orbit spotlight, and trending rails" width="900" />
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/orbit-demo.gif" alt="Orbit co-star graph demo — shareable filters, opt-in motion" width="720" />
+  <img src="docs/screenshots/06-person-orbit.png" alt="Shareable Orbit co-star graph for a person" width="900" />
 </p>
 
 <p align="center">
   <a href="https://orbitra-livid.vercel.app/orbit/6193"><strong>Try a shareable orbit</strong></a>
-  · Leonardo DiCaprio · filters &amp; selection live in the URL
-</p>
-
-<p align="center">
-  <img src="docs/screenshots/06-person-orbit.png" alt="Person page Orbit co-star graph" width="900" />
+  · Leonardo DiCaprio · filters and selection live in the URL
 </p>
 
 ---
 
 ## Why Orbitra?
 
-Most TMDB portfolio apps are thin clients that put the API key in the browser and stop at posters and search. Orbitra is built around a clearer story:
+Most TMDB portfolio apps put the API key in the browser and stop at posters and search. Orbitra is built around a clearer story:
 
-1. **Server-only TMDB access** — the browser never sees `TMDB_API`; all calls go through Nitro.
-2. **Orbit graph** — open a person → **Orbit** tab → co-star collaboration graph. Topology is built **on the server**; the canvas only renders. **Share the URL** (filters + selected node); **physics motion is opt-in** (off by default).
-3. **Practical discovery** — region-aware watch providers, Discover filters, **Tonight** mood/time-budget picks, collections with local ratings, rich person and title pages.
+1. **Server-only TMDB access** — the browser never sees `TMDB_API`; every call goes through Nitro.
+2. **Orbit graph** — open a person (or start from `/orbit`) and explore their co-star constellation. Topology is built **on the server**; the canvas only renders. **Share the URL** (filters + selected node). Physics motion is **opt-in** (off by default).
+3. **Practical discovery** — region-aware watch providers, genre-aware Discover, **Tonight** mood and time-budget picks, collections with local ratings, and rich person and title pages.
 
-No accounts, no watchlists synced to TMDB — keep it simple and self-contained.
+No accounts, no synced watchlists — simple and self-contained.
 
 ---
 
@@ -45,18 +41,18 @@ No accounts, no watchlists synced to TMDB — keep it simple and self-contained.
 
 | Area | Highlights |
 |------|------------|
-| **Home** | Hero + trending / popular rails |
-| **Discover** | Filter by streaming service, monetization type, and watch region |
-| **Tonight** | Mood + time-budget presets (short night, comfort, mind-bender…) via TMDB discover |
+| **Home** | Hero, Orbit spotlight, trending / popular / upcoming / on-the-air rails |
+| **Orbit** | Dedicated entry at `/orbit`, full-page graphs at `/orbit/:id`, person-page Orbit tab |
+| **Tonight** | Mood + time-budget presets → TMDB discover with sensible defaults |
+| **Discover** | Streaming service, monetization type, genres, and watch region |
 | **Search** | Debounced multi-search (movies, TV, people); optional “on my services” filter |
-| **Top 100** | Top-rated movie & TV charts |
+| **Top 100** | Top-rated movie and TV charts |
 | **Collections** | Franchise browse, watch order, **local** star ratings (browser storage) |
-| **Title pages** | Overview, cast, providers (“where to watch”), recommended + similar rails, videos/trailers where wired |
+| **Title pages** | Overview, cast, where-to-watch, trailers, recommended + similar rails |
 | **Person pages** | Bio, birthplace map, career timeline, role breakdown, social / IMDb links |
-| **Orbit graph** | Shareable co-star network — server-built topology; motion toggleable (default off) |
 | **Settings** | Watch region for providers and Discover |
 
-Signature feature: open a person → **Orbit** → co-star collaboration graph without N+1 browser calls to TMDB. Hit **Share link** to copy filters + selection.
+Signature path: person → **Orbit** → co-star network without N+1 browser calls to TMDB. Use **Share link** to copy filters and selection.
 
 ---
 
@@ -73,33 +69,36 @@ Browser  →  Nuxt 4 (Vue 3)  →  Nitro routes
 
 - Client data access is centralized in [`composables/useTmdb.ts`](./composables/useTmdb.ts).
 - The proxy strips client `api_key` / `include_adult` and forces mainstream catalogue defaults.
+- Orbit layout lives in `utils/orbitSim.ts`; the canvas stays render-focused in `components/actor/ActorGraph.vue`.
 
 ### Screenshots
 
-| Home | Search |
-|:----:|:------:|
-| ![Home](docs/screenshots/01-home.png) | ![Search](docs/screenshots/03-search.png) |
-| **Movie detail** | **Discover** |
-| ![Movie](docs/screenshots/04-movie.png) | ![Discover](docs/screenshots/02-discover.png) |
+| Home | Discover |
+|:----:|:--------:|
+| ![Home](docs/screenshots/01-home.png) | ![Discover](docs/screenshots/02-discover.png) |
+| **Search** | **Movie detail** |
+| ![Search](docs/screenshots/03-search.png) | ![Movie](docs/screenshots/04-movie.png) |
 | **Person** | **Collections** |
 | ![Person](docs/screenshots/05-person.png) | ![Collections](docs/screenshots/07-collections.png) |
-| **Orbit (static)** | **Orbit (demo GIF)** |
-| ![Orbit](docs/screenshots/06-person-orbit.png) | ![Orbit GIF](docs/screenshots/orbit-demo.gif) |
+| **Orbit graph** | **Orbit filters** |
+| ![Orbit](docs/screenshots/06-person-orbit.png) | ![Orbit filters](docs/screenshots/09-orbit-filter-movie.png) |
+| **Orbit index** | |
+| ![Orbit index](docs/screenshots/08-orbit-index.png) | |
 
 Regenerate after UI changes (app must be running on port 3000):
 
 ```bash
-npm i -D playwright
-npx playwright install chromium
+npx playwright install chromium   # once, if needed
 npm run build && node .output/server/index.mjs   # other terminal
-node scripts/capture-screenshots.mjs             # PNGs + docs/screenshots/orbit-demo.gif
+npm run capture:screenshots
 ```
 
 ### Design decisions
 
 - **TMDB key stays on the server** — safer defaults for a public demo and any fork.
-- **Graph topology is server-built** — fewer round-trips, consistent rate/cache behavior.
+- **Graph topology is server-built** — fewer round-trips, consistent rate and cache behavior.
 - **Local-only ratings** — no OAuth or TMDB user sessions by choice.
+- **Mainstream catalogue only** — proxy always forces `include_adult=false`.
 - **npm + lockfile only** — reproducible installs (`package-lock.json`).
 
 ---
@@ -114,7 +113,7 @@ cp .env.example .env   # set TMDB_API=your_key
 npm run dev            # http://localhost:3000
 ```
 
-**Use npm only** — this repo ships `package-lock.json`. Don’t add yarn/pnpm lockfiles.
+**Use npm only** — this repo ships `package-lock.json`. Don’t add yarn or pnpm lockfiles.
 
 ```bash
 npm run lint
@@ -122,6 +121,13 @@ npm run typecheck
 npm run knip
 npm run build
 npm run preview
+```
+
+Optional orbit checks:
+
+```bash
+npm run test:orbit
+npm run test:orbit:visual   # needs a running app
 ```
 
 CI runs prepare → lint → knip → typecheck → build on `main` (see [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)).
@@ -138,12 +144,13 @@ CI runs prepare → lint → knip → typecheck → build on `main` (see [`.gith
 
 | Path | Role |
 |------|------|
-| `pages/` | File-based routes (home, discover, search, movie/TV/person, settings) |
-| `components/` | UI, rails, posters, actor graph canvas |
+| `pages/` | File-based routes (home, discover, tonight, orbit, search, movie/TV/person, settings) |
+| `components/` | UI, rails, posters, orbit stage / filters / insights |
 | `composables/` | TMDB client, watch region, local ratings |
-| `server/api/` | Nitro proxies and graph / collections endpoints |
+| `server/api/` | Nitro proxy, graph builder, collections catalog |
+| `utils/orbitSim.ts` | Force layout for the orbit canvas |
 | `utils/personCredits.ts` | Credit aggregation for person timelines |
-| `ROADMAP.md` | Next ideas (graph UX polish, small product wins) |
+| `ROADMAP.md` | What’s done and what’s next |
 | `CONTRIBUTING.md` | How to propose changes |
 
 ---
@@ -152,7 +159,13 @@ CI runs prepare → lint → knip → typecheck → build on `main` (see [`.gith
 
 Issues and focused PRs welcome. Prefer small changes that match existing patterns (proxy-only TMDB, Tailwind tokens in `assets/css/main.css`, TypeScript in Vue SFCs).
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md), [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md), and [ROADMAP.md](./ROADMAP.md).
+See [CONTRIBUTING.md](./CONTRIBUTING.md), [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md), [SECURITY.md](./SECURITY.md), and [ROADMAP.md](./ROADMAP.md).
+
+---
+
+## Security
+
+Please report vulnerabilities privately — see [SECURITY.md](./SECURITY.md). Never open a public issue that includes secrets or a working exploit.
 
 ---
 

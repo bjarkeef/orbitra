@@ -47,6 +47,10 @@ CI runs the same checks on `main` and pull requests.
 2. Match existing patterns: Nitro proxy for TMDB, Tailwind tokens in `assets/css/main.css`, `<script setup lang="ts">` in Vue SFCs.
 3. Keep PRs reviewable — small beats clever.
 
+## Security
+
+Report vulnerabilities privately — see [SECURITY.md](./SECURITY.md). Do not file public issues that include secrets or working exploits.
+
 ## Code of conduct
 
 Be respectful. See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md).
