@@ -22,6 +22,11 @@ updates:
           - "patch"
     labels:
       - dependencies
+    # TS 7 not usable yet: vue-tsc lacks ./lib/tsc export; typescript-eslint
+    # peers are typescript <6.1.0. Revisit when both support TS 7.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
