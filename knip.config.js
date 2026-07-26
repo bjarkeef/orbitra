@@ -24,6 +24,9 @@ export default {
     'vue-tsc',
     // Transitive via @nuxtjs/tailwindcss; config file imports by name
     'tailwindcss',
+    // Runtime pin: Nuxt 4.5 SSR renderer imports createConsoleReporter; without a
+    // direct dep + override, devframe hoists nostics@0.2.0 and Vercel 500s.
+    'nostics',
   ],
   ignoreBinaries: [],
 }
