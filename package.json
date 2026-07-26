@@ -45,6 +45,10 @@
   },
   "dependencies": {
     "@nuxt/image": "^2.0.0",
-    "@vercel/analytics": "^2.0.1"
+    "@vercel/analytics": "^2.0.1",
+    "nostics": "1.2.0"
+  },
+  "overrides": {
+    "nostics": "1.2.0"
   }
 }
