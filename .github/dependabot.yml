@@ -7,11 +7,19 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    # Only batch minor/patch updates. Majors (e.g. typescript 6→7,
+    # @types/node 22→26) open as individual PRs so CI breakage is isolated.
     groups:
       production-deps:
         dependency-type: production
+        update-types:
+          - "minor"
+          - "patch"
       development-deps:
         dependency-type: development
+        update-types:
+          - "minor"
+          - "patch"
     labels:
       - dependencies
 
