@@ -44,7 +44,7 @@
     "vue-tsc": "^3.3.8"
   },
   "dependencies": {
-    "@nuxt/image": "^2.0.0",
+    "@nuxt/image": "^2.1.0",
     "@vercel/analytics": "^2.0.1",
     "nostics": "1.2.0"
   },
