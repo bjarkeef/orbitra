@@ -4,7 +4,7 @@ Thanks for considering a contribution. Orbitra is a portfolio / learning **Nuxt 
 
 ## Prerequisites
 
-- Node.js **≥ 20.19** (22 recommended; matches CI)
+- Node.js **≥ 22.19** (matches `engines` and CI)
 - npm (this repo uses `package-lock.json` only — no yarn/pnpm lockfiles)
 - A free [TMDB v3 API key](https://www.themoviedb.org/settings/api)
 
@@ -40,6 +40,10 @@ CI runs the same checks on `main` and pull requests.
 - Client-side `include_adult` toggles or adult catalogue features — Orbitra is mainstream-only; the proxy always forces `include_adult=false`
 - Large unrelated refactors in the same PR as a feature
 - Adding a second package manager lockfile
+
+## Finding something to work on
+
+Issues labelled [`good first issue`](https://github.com/bjarkeef/orbitra/issues?q=is%3Aopen+label%3A%22good+first+issue%22) are small, self-contained and describe where to start. Comment on one before you begin so two people don't pick the same thing. [ROADMAP.md](./ROADMAP.md) lists bigger ideas.
 
 ## Pull requests
 

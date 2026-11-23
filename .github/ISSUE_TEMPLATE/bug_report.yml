@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in Orbitra is broken or behaves unexpectedly
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Please don't include API keys or other secrets.
+        Security issues go through [SECURITY.md](https://github.com/bjarkeef/orbitra/blob/main/SECURITY.md) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you saw, and what you expected to see instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: A URL in Orbitra is often enough (for example `/orbit/287?media=movie`).
+      placeholder: |
+        1. Open /m/550
+        2. Click …
+        3. See …
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where did you see it?
+      options:
+        - Live demo
+        - Local dev (npm run dev)
+        - Local production build (npm run build + preview)
+        - My own deployment
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and OS
+      placeholder: Firefox 133 on Windows 11
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console or server output
+      description: Paste any errors from the browser console or the terminal.
+      render: shell

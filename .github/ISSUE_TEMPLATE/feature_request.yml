@@ -1,0 +1,35 @@
+name: Feature or improvement
+description: Suggest something new or a better way to do something
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like to do?
+      description: Describe the use case first; a solution is optional.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea for how it could work
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Orbit graph
+        - Discover / Tonight / Search
+        - Title or person pages
+        - Collections and ratings
+        - Performance / hosting
+        - Docs / developer experience
+        - Other
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Fit
+      options:
+        - label: This works without user accounts and keeps the TMDB key on the server (see CONTRIBUTING.md)
+          required: true
+        - label: I'd like to work on this myself

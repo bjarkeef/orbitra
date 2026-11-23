@@ -2,25 +2,28 @@
 
 **Map the orbits of film & television.**
 
-Open-source movie and TV discovery — [Nuxt 4](https://nuxt.com/), [Tailwind CSS](https://tailwindcss.com/), [TMDB](https://www.themoviedb.org/). Built as a public portfolio repo: practical browsing plus a signature **co-star orbit graph**.
+Pick any actor and see who they keep working with: an interactive co-star constellation built from TMDB, with filters you can share as a link. Around it sits a fast, practical movie and TV browser (where to watch in your country, mood-based picks for tonight, franchise watch orders).
+
+Built with [Nuxt 4](https://nuxt.com/), [Tailwind CSS](https://tailwindcss.com/) and the [TMDB API](https://www.themoviedb.org/). The TMDB key never reaches the browser, the graph is built on the server, and the whole thing is designed to stay on a free hosting tier.
 
 [![CI](https://github.com/bjarkeef/orbitra/actions/workflows/ci.yml/badge.svg)](https://github.com/bjarkeef/orbitra/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-slate.svg)](./LICENSE)
-[![Live demo](https://img.shields.io/badge/demo-Vercel-black)](https://orbitra-livid.vercel.app)
+[![Live demo](https://img.shields.io/badge/demo-paused_until_mid--Dec-orange)](https://orbitra-livid.vercel.app)
+[![Good first issues](https://img.shields.io/github/issues/bjarkeef/orbitra/good%20first%20issue?label=good%20first%20issues&color=7c3aed)](https://github.com/bjarkeef/orbitra/issues?q=is%3Aopen+label%3A%22good+first+issue%22)
 
-**Live demo:** [orbitra-livid.vercel.app](https://orbitra-livid.vercel.app)
-
-<p align="center">
-  <img src="docs/screenshots/01-home.png" alt="Orbitra home — hero, Orbit spotlight, and trending rails" width="900" />
-</p>
+> **Demo temporarily down.** The live demo at [orbitra-livid.vercel.app](https://orbitra-livid.vercel.app) went over Vercel's free-tier limits after a traffic spike and is paused until mid-December 2026. The fixes (CDN caching, a locked-down API proxy, rate limiting) are already merged; see [Staying inside a free tier](#staying-inside-a-free-tier). Meanwhile, [run it locally](#quick-start) in about two minutes with a free TMDB key.
 
 <p align="center">
   <img src="docs/screenshots/06-person-orbit.png" alt="Shareable Orbit co-star graph for a person" width="900" />
 </p>
 
 <p align="center">
+  <img src="docs/screenshots/01-home.png" alt="Orbitra home — hero, Orbit spotlight, and trending rails" width="900" />
+</p>
+
+<p align="center">
   <a href="https://orbitra-livid.vercel.app/orbit/6193"><strong>Try a shareable orbit</strong></a>
-  · Leonardo DiCaprio · filters and selection live in the URL
+  · Leonardo DiCaprio · filters and selection live in the URL (works again once the demo is back)
 </p>
 
 ---
@@ -105,7 +108,7 @@ npm run capture:screenshots
 
 ## Quick start
 
-Requirements: **Node.js ≥ 20.19** (CI uses Node 22). Free [TMDB API key](https://www.themoviedb.org/settings/api) (v3 key is fine).
+Requirements: **Node.js ≥ 22.19** (matches `engines` in `package.json` and CI). Free [TMDB API key](https://www.themoviedb.org/settings/api) (v3 key is fine).
 
 ```bash
 npm install
