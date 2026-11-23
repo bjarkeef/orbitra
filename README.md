@@ -149,7 +149,9 @@ Orbitra is built so a traffic spike lands on the CDN, not on serverless function
 - **Images load straight from TMDB's CDN** at the size `imageUrl` picks (no paid image optimization).
 - **`robots.txt`** keeps crawlers off the API, query-driven pages and deep episode trees, and opts out of AI training crawlers.
 
-On Vercel, also turn on **Bot Protection** and add a **rate-limit rule** for `/api/*` in the Firewall tab.
+- **Per-IP rate limiting** on `/api/*` (`server/middleware/rate-limit.ts`): 120 requests/minute, and 20 orbit graph builds/minute. It is in-memory per instance, so it needs no paid plan or external store.
+
+On Vercel, also turn on **Bot Protection** in the Firewall tab (free on Hobby).
 
 ---
 
