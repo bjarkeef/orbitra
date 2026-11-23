@@ -28,7 +28,7 @@ export default defineEventHandler((event) => {
   setResponseHeader(event, 'X-RateLimit-Remaining', String(tightest.remaining))
 
   if (blocked) {
-    setResponseHeader(event, 'Retry-After', String(blocked.resetSec))
+    setResponseHeader(event, 'Retry-After', blocked.resetSec)
     setResponseHeader(event, 'Cache-Control', 'no-store')
     throw createError({
       statusCode: 429,
