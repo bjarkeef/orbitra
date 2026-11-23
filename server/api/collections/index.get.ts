@@ -15,6 +15,7 @@ import { uniqueCatalogIds } from '../../utils/collectionCatalog'
 import {
   MemoryCache,
   cacheKeyFromPathQuery,
+  publicCacheControl,
 } from '../../utils/memoryCache'
 
 interface TmdbPart {
@@ -141,7 +142,7 @@ export default defineEventHandler(async (event) => {
     results = results.filter(c => c.part_count <= maxParts)
   }
 
-  setHeader(event, 'Cache-Control', 'private, max-age=300')
+  setHeader(event, 'Cache-Control', publicCacheControl(LIST_TTL_MS / 1000))
   return {
     results,
     total: results.length,

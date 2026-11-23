@@ -9,10 +9,14 @@
  * - rank: popular | recent | top_rated | hybrid
  * - yearFrom / yearTo: optional inclusive year filters
  *
+ * Size params snap to a few presets and years snap to whole decades, so share links with
+ * hand-edited values reuse the same cache entry instead of each triggering a fresh
+ * ~40-call TMDB fan-out. Responses are public and CDN-cacheable for 24h.
+ *
  * @route GET /api/actors/:id/graph
  */
 
-import { MemoryCache } from '../../../utils/memoryCache'
+import { MemoryCache, publicCacheControl } from '../../../utils/memoryCache'
 import type {
   GraphInsights,
   GraphLink,
@@ -105,6 +109,19 @@ function clampInt(value: unknown, min: number, max: number, fallback: number): n
   const n = Number(value)
   if (!Number.isFinite(n)) return fallback
   return Math.min(max, Math.max(min, Math.trunc(n)))
+}
+
+/** Graph sizes the UI actually uses (see `orbitGraphDefaults`), plus a "large" tier. */
+const MAX_PROJECT_PRESETS = [10, 14, 24, 32, 40]
+const TOP_CAST_PRESETS = [4, 5, 8, 12]
+
+/** Snap to the nearest preset (ties go to the smaller, cheaper graph). */
+function snapToPreset(value: number, presets: number[]): number {
+  let best = presets[0]!
+  for (const p of presets) {
+    if (Math.abs(p - value) < Math.abs(best - value)) best = p
+  }
+  return best
 }
 
 function parseMedia(v: unknown): OrbitMediaFilter {
@@ -458,12 +475,15 @@ export default defineEventHandler(async (event): Promise<GraphPayload> => {
   }
 
   const q = getQuery(event)
-  const maxProjects = clampInt(q.maxProjects, 5, 40, 24)
-  const topCastPerProject = clampInt(q.topCast, 3, 12, 8)
+  const maxProjects = snapToPreset(clampInt(q.maxProjects, 5, 40, 24), MAX_PROJECT_PRESETS)
+  const topCastPerProject = snapToPreset(clampInt(q.topCast, 3, 12, 8), TOP_CAST_PRESETS)
   const media = parseMedia(q.media)
   const rank = parseRank(q.rank)
-  const yearFrom = parseYear(q.yearFrom)
-  const yearTo = parseYear(q.yearTo)
+  // Decade buckets: the UI only offers decade ranges; arbitrary years would explode the cache.
+  const rawFrom = parseYear(q.yearFrom)
+  const rawTo = parseYear(q.yearTo)
+  const yearFrom = rawFrom != null ? Math.floor(rawFrom / 10) * 10 : null
+  const yearTo = rawTo != null ? Math.floor(rawTo / 10) * 10 + 9 : null
 
   const cacheKey = [
     personId,
@@ -478,7 +498,7 @@ export default defineEventHandler(async (event): Promise<GraphPayload> => {
   const cached = graphCache.get(cacheKey)
   if (cached) {
     setHeader(event, 'X-Orbitra-Cache', 'HIT')
-    setHeader(event, 'Cache-Control', 'private, max-age=86400')
+    setHeader(event, 'Cache-Control', publicCacheControl(CACHE_TTL_MS / 1000))
     return {
       ...cached,
       meta: { ...cached.meta, cache: 'HIT' },
@@ -510,6 +530,6 @@ export default defineEventHandler(async (event): Promise<GraphPayload> => {
   }
 
   const payload = await pending
-  setHeader(event, 'Cache-Control', 'private, max-age=86400')
+  setHeader(event, 'Cache-Control', publicCacheControl(CACHE_TTL_MS / 1000))
   return payload
 })

@@ -1,4 +1,9 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+
+/** Public, CDN-cacheable page response: fresh for `ttlSec`, then served stale while one request refreshes it. */
+function pageCache(ttlSec: number): string {
+  return `public, max-age=0, s-maxage=${ttlSec}, stale-while-revalidate=${ttlSec * 24}`
+}
 export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@nuxt/eslint', '@nuxt/image'],
 
@@ -17,6 +22,23 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     tmdbAPI: process.env.TMDB_API,
+  },
+
+  /**
+   * CDN caching for server-rendered pages. Without these every page view (and every
+   * crawler hit) is a fresh function invocation plus TMDB calls. Only pages whose HTML is
+   * the same for every visitor are listed: per-user bits (watch region, local ratings)
+   * render inside <ClientOnly>. Query-driven pages (search, discover, tonight, settings)
+   * and the ratings-heavy collection pages stay uncached.
+   */
+  routeRules: {
+    '/': { headers: { 'cache-control': pageCache(600) } },
+    '/100': { headers: { 'cache-control': pageCache(3600) } },
+    '/orbit': { headers: { 'cache-control': pageCache(3600) } },
+    '/orbit/**': { headers: { 'cache-control': pageCache(86400) } },
+    '/m/**': { headers: { 'cache-control': pageCache(3600) } },
+    '/tv/**': { headers: { 'cache-control': pageCache(3600) } },
+    '/actor/**': { headers: { 'cache-control': pageCache(3600) } },
   },
 
   // Nuxt 4 defaults; root-level pages/components remain supported (no app/ move required).
@@ -55,19 +77,11 @@ export default defineNuxtConfig({
     },
   },
 
-  // TMDB CDN optimized via IPX (webp); local placeholders in public/img.
+  // TMDB already serves pre-sized images (w185/w500/…) from its own CDN, and `imageUrl`
+  // picks the size. Passing them through unchanged avoids Vercel Image Optimization,
+  // which is metered per source image and was exhausted by poster grids.
   image: {
-    domains: ['image.tmdb.org'],
-    format: ['webp'],
-    quality: 80,
-    screens: {
-      'xs': 320,
-      'sm': 640,
-      'md': 768,
-      'lg': 1024,
-      'xl': 1280,
-      '2xl': 1536,
-    },
+    provider: 'none',
   },
 
   // One CSS entry via the module — avoids Vite also loading node_modules/tailwindcss/tailwind.css as a module.

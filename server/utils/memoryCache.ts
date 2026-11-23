@@ -171,3 +171,23 @@ export function tmdbProxyTtlMs(segments: string[]): number {
   // Fallback for anything else we proxy
   return msMinutes(15)
 }
+
+/**
+ * Shared-cache `Cache-Control` value for public, user-neutral responses.
+ *
+ * `s-maxage` lets Vercel's CDN (or any shared cache) serve repeat requests without
+ * invoking a function; `stale-while-revalidate` keeps serving the old copy while one
+ * background request refreshes it. Browsers get a short `max-age` so a deploy or data
+ * change shows up quickly for returning visitors.
+ *
+ * The in-process {@link MemoryCache} only helps within one warm instance; this header is
+ * what actually keeps traffic spikes off the origin.
+ *
+ * @param ttlSec - How long a shared cache may treat the response as fresh
+ */
+export function publicCacheControl(ttlSec: number): string {
+  const fresh = Math.max(1, Math.floor(ttlSec))
+  const browser = Math.min(fresh, 300)
+  const stale = Math.max(fresh * 4, 3600)
+  return `public, max-age=${browser}, s-maxage=${fresh}, stale-while-revalidate=${stale}`
+}

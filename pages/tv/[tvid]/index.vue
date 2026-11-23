@@ -135,7 +135,10 @@
             >
               <h2 class="text-xl font-bold text-slate-100 mb-1">Where to watch</h2>
               <p class="text-xs text-slate-500 mb-4">Availability via TMDB / JustWatch</p>
-              <MProviders :providers="providers" />
+              <!-- Region comes from a cookie / browser locale: client-only so cached HTML is region-neutral -->
+              <ClientOnly>
+                <MProviders :providers="providers" />
+              </ClientOnly>
             </div>
             <div
               v-else-if="pending"

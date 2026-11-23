@@ -138,6 +138,19 @@ CI runs prepare → lint → knip → typecheck → build on `main` (see [`.gith
 2. Set **`TMDB_API`** in the host environment (server-only — never `NUXT_PUBLIC_*`).
 3. Deploy. The live demo uses the same pattern.
 
+#### Staying inside a free tier
+
+Orbitra is built so a traffic spike lands on the CDN, not on serverless functions or TMDB:
+
+- **API responses are public and CDN-cacheable** (`s-maxage` + `stale-while-revalidate`, TTLs per resource in `server/utils/memoryCache.ts`). The in-process memory cache only de-dupes within one warm instance.
+- **Detail pages** (`/`, `/m/*`, `/tv/*`, `/actor/*`, `/orbit/*`, `/100`) are CDN-cached via `routeRules`. Per-visitor bits (watch region, local ratings) render client-side, and a failed render is sent as `no-store` so errors are never cached.
+- **The TMDB proxy only forwards paths the app uses** (`server/utils/tmdbAllowlist.ts`), so the demo can't be used as a free TMDB API.
+- **Orbit graph params snap to presets and decades**, so hand-edited share links reuse cached graphs instead of each causing ~40 TMDB calls.
+- **Images load straight from TMDB's CDN** at the size `imageUrl` picks (no paid image optimization).
+- **`robots.txt`** keeps crawlers off the API, query-driven pages and deep episode trees, and opts out of AI training crawlers.
+
+On Vercel, also turn on **Bot Protection** and add a **rate-limit rule** for `/api/*` in the Firewall tab.
+
 ---
 
 ## Project layout
