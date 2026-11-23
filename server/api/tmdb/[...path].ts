@@ -9,13 +9,18 @@
  * - Upstream `include_adult` is always forced to `false`.
  * - Client-supplied `include_adult` and `api_key` query params are stripped (never trusted).
  *
+ * Abuse limits:
+ * - Only paths in `server/utils/tmdbAllowlist` are forwarded (404 otherwise).
+ * - `page` above TMDB's own 500-page cap is rejected.
+ *
  * Headers (response):
  * - `X-Orbitra-Cache: HIT|MISS` — local memory cache outcome
- * - `Cache-Control` — private max-age aligned with the entry TTL (browser/CDN hint only)
+ * - `Cache-Control` — public with `s-maxage` = entry TTL so the CDN absorbs repeat traffic
  *
  * @route GET /api/tmdb/**
  * @returns Opaque TMDB JSON (`unknown`) — shape depends on the upstream resource
- * @throws 400 invalid / missing path
+ * @throws 400 invalid / missing path, or out-of-range `page`
+ * @throws 404 path not used by Orbitra (see allowlist)
  * @throws 500 missing server configuration
  * @throws 4xx/5xx mirrored (when possible) from TMDB upstream failures
  *
@@ -25,8 +30,10 @@
 import {
   MemoryCache,
   cacheKeyFromPathQuery,
+  publicCacheControl,
   tmdbProxyTtlMs,
 } from '../../utils/memoryCache'
+import { TMDB_MAX_PAGE, isAllowedTmdbPath } from '../../utils/tmdbAllowlist'
 
 /** Upstream TMDB error body (partial). */
 interface TmdbUpstreamErrorBody {
@@ -205,6 +212,18 @@ export default defineEventHandler(async (event): Promise<TmdbProxyResponse> => {
   const segments = resolvePathSegments(event.context.params?.path)
   const incomingQuery = getQuery(event) as Record<string, unknown>
   const resourcePath = segments.join('/')
+
+  if (!isAllowedTmdbPath(resourcePath)) {
+    throw createError({ statusCode: 404, statusMessage: 'Unknown TMDB resource' })
+  }
+
+  if (incomingQuery.page !== undefined) {
+    const page = Number(incomingQuery.page)
+    if (!Number.isInteger(page) || page < 1 || page > TMDB_MAX_PAGE) {
+      throw createError({ statusCode: 400, statusMessage: `page must be 1-${TMDB_MAX_PAGE}` })
+    }
+  }
+
   const cacheQuery = cacheQueryBag(incomingQuery)
   const cacheKey = cacheKeyFromPathQuery(resourcePath, cacheQuery)
   const ttlMs = tmdbProxyTtlMs(segments)
@@ -213,7 +232,7 @@ export default defineEventHandler(async (event): Promise<TmdbProxyResponse> => {
   const cached = responseCache.get(cacheKey)
   if (cached !== undefined) {
     setHeader(event, 'X-Orbitra-Cache', 'HIT')
-    setHeader(event, 'Cache-Control', `private, max-age=${ttlSec}`)
+    setHeader(event, 'Cache-Control', publicCacheControl(ttlSec))
     return cached
   }
 
@@ -223,7 +242,7 @@ export default defineEventHandler(async (event): Promise<TmdbProxyResponse> => {
   try {
     const body = await fetchAndCache(cacheKey, tmdbUrl, ttlMs)
     setHeader(event, 'X-Orbitra-Cache', 'MISS')
-    setHeader(event, 'Cache-Control', `private, max-age=${ttlSec}`)
+    setHeader(event, 'Cache-Control', publicCacheControl(ttlSec))
     return body
   }
   catch (err: unknown) {

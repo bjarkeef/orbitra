@@ -69,7 +69,10 @@
               <CastRail :cast="cast" sort-by-popularity />
             </div>
 
-            <MCollection v-if="movie.belongs_to_collection" :movie="movie" />
+            <!-- Collection progress reads local ratings: client-only so cached HTML is user-neutral -->
+            <ClientOnly>
+              <MCollection v-if="movie.belongs_to_collection" :movie="movie" />
+            </ClientOnly>
           </div>
 
           <aside class="space-y-6 min-w-0 lg:sticky lg:top-20">
@@ -80,7 +83,10 @@
             >
               <h2 class="text-xl font-bold text-slate-100 mb-1">Where to watch</h2>
               <p class="text-xs text-slate-500 mb-4">Availability via TMDB / JustWatch</p>
-              <MProviders :providers="providers" />
+              <!-- Region comes from a cookie / browser locale: client-only so cached HTML is region-neutral -->
+              <ClientOnly>
+                <MProviders :providers="providers" />
+              </ClientOnly>
             </div>
             <div
               v-else-if="pending"

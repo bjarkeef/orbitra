@@ -46,31 +46,34 @@
       <p class="mt-1 text-xs text-slate-500">
         Saved in this browser · counts toward collection progress
       </p>
-      <div class="mt-3 flex flex-wrap gap-1">
-        <button
-          v-for="n in 10"
-          :key="n"
-          type="button"
-          class="user-score-btn"
-          :class="{ 'user-score-btn-on': userScore === n }"
-          :aria-pressed="userScore === n"
-          :aria-label="`Rate ${n} out of 10`"
-          @click="onPick(n)"
-        >
-          {{ n }}
-        </button>
-        <button
-          v-if="userScore"
-          type="button"
-          class="ml-1 text-xs text-slate-500 hover:text-slate-300 underline-offset-2 hover:underline"
-          @click="onClear"
-        >
-          Clear
-        </button>
-      </div>
-      <p v-if="userScore" class="mt-2 text-sm text-indigo-200/90">
-        You rated this <strong class="font-semibold">{{ userScore }}</strong>/10
-      </p>
+      <!-- Personal rating comes from browser storage: client-only so cached HTML stays shareable -->
+      <ClientOnly>
+        <div class="mt-3 flex flex-wrap gap-1">
+          <button
+            v-for="n in 10"
+            :key="n"
+            type="button"
+            class="user-score-btn"
+            :class="{ 'user-score-btn-on': userScore === n }"
+            :aria-pressed="userScore === n"
+            :aria-label="`Rate ${n} out of 10`"
+            @click="onPick(n)"
+          >
+            {{ n }}
+          </button>
+          <button
+            v-if="userScore"
+            type="button"
+            class="ml-1 text-xs text-slate-500 hover:text-slate-300 underline-offset-2 hover:underline"
+            @click="onClear"
+          >
+            Clear
+          </button>
+        </div>
+        <p v-if="userScore" class="mt-2 text-sm text-indigo-200/90">
+          You rated this <strong class="font-semibold">{{ userScore }}</strong>/10
+        </p>
+      </ClientOnly>
     </div>
   </div>
 </template>
